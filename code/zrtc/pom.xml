@@ -23,7 +23,7 @@
             <configuration>
                 <archive>
                     <manifest>
-                        <mainClass>fr.meewan.zrtc.App</mainClass>
+                        <mainClass>fr.meewan.zrtc.Main</mainClass>
                     </manifest>
                 </archive>
             </configuration>
