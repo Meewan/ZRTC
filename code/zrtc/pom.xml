@@ -32,5 +32,10 @@
 </build>
 
   <dependencies>
+    <dependency>
+      <groupId>org.ini4j<groupId>
+      <artifactId>ini4j</artifactID>
+      <version>0.5.2</version>
+    </dependency>
   </dependencies>
 </project>
