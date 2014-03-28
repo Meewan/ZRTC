@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package zrtc.utils;
+package fr.meewan.zrtc.utils;
 
 import java.io.File;
 import java.io.IOException;

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package zrtc.utils;
+package fr.meewan.zrtc.utils;
 
 import org.ini4j.Profile.Section;
 

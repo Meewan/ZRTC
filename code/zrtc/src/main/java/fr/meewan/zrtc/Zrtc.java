@@ -1,6 +1,6 @@
-package zrtc;
+package fr.meewan.zrtc;
 import java.io.IOException;
-import zrtc.utils.CoreConfiguration;
+import fr.meewan.zrtc.utils.CoreConfiguration;
 /**
  *
  * @author rpaoloni
@@ -14,6 +14,7 @@ public class Zrtc {
     public static void main(String[] args) throws IOException 
     {
         CoreConfiguration configuration = new CoreConfiguration(CONFIGURATION_FILE);
+        System.out.println(" success \\o/");
     }
     
 }
