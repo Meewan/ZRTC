@@ -17,22 +17,44 @@ public class ModuleCoreConfiguration extends Configuration
 {
 
     protected String adress;
-    protected boolean active;
+    protected boolean internal;
     
     public ModuleCoreConfiguration(Section module) 
     {   
-        this.active = Boolean.getBoolean(module.get("activated"));
+        this.internal = Boolean.getBoolean(module.get("internal"));
         this.adress = module.get("adress");
         this.publicListeningPort = Integer.parseInt(module.get("listeningPort"));
         this.publicKey = parseKey(module.get("publicKey"));
+        System.out.println(this.toString());
     }
     
     @Override
     public String toString()
     {
         String output = "adress : " + this.adress + ":" + this.publicListeningPort + "\n";
-        output += "active : " + this.active + "\n";
+        output += "active : " + this.internal + "\n";
         output += "key : \n" + this.publicKey;
         return output;
     }
+
+    public String getAdress() {
+        return adress;
+    }
+
+    public boolean isInternal() {
+        return internal;
+    }
+
+    public String getConfigurationFilePath() {
+        return configurationFilePath;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public int getPublicListeningPort() {
+        return publicListeningPort;
+    }
+    
 }

@@ -10,7 +10,7 @@ package fr.meewan.zrtc.module;
  *
  * @author rpaoloni
  */
-public interface module
+public interface Module
 {
     /**
      * méthode disant si le module doit être chargé en local

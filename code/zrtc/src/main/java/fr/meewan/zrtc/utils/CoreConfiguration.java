@@ -66,4 +66,33 @@ public class CoreConfiguration extends Configuration
         }
         return lifeCycle;
     }
+
+    public String getPrivateListeningPort() {
+        return privateListeningPort;
+    }
+
+    public Map<String, ModuleCoreConfiguration> getModuleList() {
+        return moduleList;
+    }
+
+    public Map<String, List<String>> getCommands() {
+        return commands;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public String getConfigurationFilePath() {
+        return configurationFilePath;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public int getPublicListeningPort() {
+        return publicListeningPort;
+    }
+    
 }
