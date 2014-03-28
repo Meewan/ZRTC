@@ -23,7 +23,7 @@
             <configuration>
                 <archive>
                     <manifest>
-                        <mainClass>fr.meewan.zrtc.Main</mainClass>
+                        <mainClass>fr.meewan.zrtc.Zrtc</mainClass>
                     </manifest>
                 </archive>
             </configuration>
@@ -33,8 +33,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.ini4j<groupId>
-      <artifactId>ini4j</artifactID>
+      <groupId>org.ini4j</groupId>
+      <artifactId>ini4j</artifactId>
       <version>0.5.2</version>
     </dependency>
   </dependencies>
