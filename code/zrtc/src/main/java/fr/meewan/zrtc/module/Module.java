@@ -16,7 +16,7 @@ public interface Module
      * méthode disant si le module doit être chargé en local
      * @return 
      */
-    public boolean isActive();
+    public boolean isInternal();
     
     /**
      * méthode lançant le module dans un nouveau thread et gérant la 

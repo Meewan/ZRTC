@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package fr.meewan.zrtc.utils;
+package fr.meewan.zrtc.configuration;
 
+import fr.meewan.zrtc.utils.FileReader;
 import java.io.File;
 import java.io.IOException;
 import org.ini4j.Ini;
