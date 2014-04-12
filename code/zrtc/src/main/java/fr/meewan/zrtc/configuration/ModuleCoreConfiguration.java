@@ -12,6 +12,9 @@ import org.ini4j.Profile.Section;
  *Configuration des modules a destination du core.
  * ne pas confondre avec les fichiers de configuration des chaque module
  * @author rpaoloni
+ * 
+ * 
+ * Cet ojet est immutable
  */
 public class ModuleCoreConfiguration extends Configuration
 {
@@ -24,7 +27,6 @@ public class ModuleCoreConfiguration extends Configuration
         this.internal = Boolean.getBoolean(module.get("internal"));
         this.adress = module.get("adress");
         this.publicListeningPort = Integer.parseInt(module.get("listeningPort"));
-        this.publicKey = parseKey(module.get("publicKey"));
         System.out.println(this.toString());
     }
     
@@ -33,7 +35,6 @@ public class ModuleCoreConfiguration extends Configuration
     {
         String output = "adress : " + this.adress + ":" + this.publicListeningPort + "\n";
         output += "active : " + this.internal + "\n";
-        output += "key : \n" + this.publicKey;
         return output;
     }
 
@@ -47,10 +48,6 @@ public class ModuleCoreConfiguration extends Configuration
 
     public String getConfigurationFilePath() {
         return configurationFilePath;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
     }
 
     public int getPublicListeningPort() {

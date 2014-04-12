@@ -12,12 +12,7 @@ package fr.meewan.zrtc.module;
  */
 public interface Module
 {
-    /**
-     * méthode disant si le module doit être chargé en local
-     * @return 
-     */
-    public boolean isInternal();
-    
+        
     /**
      * méthode lançant le module dans un nouveau thread et gérant la 
      * configurationdu module

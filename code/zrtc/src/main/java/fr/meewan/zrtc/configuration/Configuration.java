@@ -19,7 +19,6 @@ import org.ini4j.Wini;
 public abstract class Configuration 
 {
     protected String configurationFilePath;
-    protected String publicKey;
     protected int publicListeningPort;
     
     /**

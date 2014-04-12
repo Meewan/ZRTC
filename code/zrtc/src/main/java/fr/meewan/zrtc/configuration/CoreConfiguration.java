@@ -20,7 +20,10 @@ import org.ini4j.Profile.Section;
  */
 public class CoreConfiguration extends Configuration
 {
-    protected String privateListeningPort;
+    protected int privateListeningPort;
+    protected int configListeningPort;
+    protected int workers;
+    protected String publicKey;
     protected Map<String,ModuleCoreConfiguration> moduleList;
     protected Map<String, List<String>> commands;
     protected String privateKey;
@@ -34,8 +37,10 @@ public class CoreConfiguration extends Configuration
     {
         Ini config = getIni(configFile);
         Section mainSection = config.get("main");
-        this.privateListeningPort = mainSection.get("privateListeningPort");
-        this.publicListeningPort  = Integer.parseInt(mainSection.get("publicListeningPort"));
+        this.privateListeningPort  = Integer.parseInt(mainSection.get("privateListeningPort"));
+        this.publicListeningPort   = Integer.parseInt(mainSection.get("publicListeningPort"));
+        this.configListeningPort   = Integer.parseInt(mainSection.get("configListeningPort"));
+        this.workers               = Integer.parseInt(mainSection.get("workers"));
         
         Section cryptoSection = config.get("cryptography");
         this.publicKey  = this.parseKey(cryptoSection.get("publicKey"));
@@ -67,7 +72,11 @@ public class CoreConfiguration extends Configuration
         return lifeCycle;
     }
 
-    public String getPrivateListeningPort() {
+    public int getConfigListeningPort() {
+        return configListeningPort;
+    }
+
+    public int getPrivateListeningPort() {
         return privateListeningPort;
     }
 
@@ -93,6 +102,10 @@ public class CoreConfiguration extends Configuration
 
     public int getPublicListeningPort() {
         return publicListeningPort;
+    }
+
+    public int getWorkers() {
+        return workers;
     }
     
 }
