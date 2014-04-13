@@ -43,7 +43,7 @@ public class Zrtc {
         coreWorkers = new ArrayList<>();
         for(int i = 0 ; i < configuration.getWorkers() ; i++)
         {
-            coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands()));
+            coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands(), configuration.getConfigListeningPort()));
             coreWorkers.get(i).start();
         }
         Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Demarage du module reseau du core termine");
@@ -86,7 +86,8 @@ public class Zrtc {
                 }
             }
         }
-        comConfiguration = new ComConfiguration(comConfigurationContent);
+        comConfiguration = new ComConfiguration();
+        comConfiguration.modulList = comConfigurationContent;
         Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Configuration termine");
         return configuration;
     }

@@ -14,10 +14,6 @@ import java.util.Map;
  */
 public class ComConfiguration 
 {
-    private Map<String, String> modulList;
+    public Map<String, String> modulList;
 
-    public ComConfiguration(Map<String, String> modulList) 
-    {
-        this.modulList = modulList;
-    }
 }
