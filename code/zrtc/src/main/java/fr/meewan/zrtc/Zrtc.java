@@ -1,5 +1,4 @@
 package fr.meewan.zrtc;
-import fr.meewan.zrtc.com.ComConfiguration;
 import fr.meewan.zrtc.module.Module;
 import fr.meewan.zrtc.module.ModuleFactory;
 import java.io.IOException;
@@ -24,21 +23,22 @@ public class Zrtc {
     final public static String CONFIGURATION_FILE = "config.ini";
     final public static String INTERNAL_COM_ADRESS = "inproc://core_internal_com_adress"; 
     private static List<CoreWorker> coreWorkers;
-    public static ComConfiguration comConfiguration;
+    public static HashMap comConfiguration;
+    private static Map<String, Module> internalModules;
     public static void main(String[] args) throws Exception
     {
         CoreConfiguration configuration = configure();
-        Set<String> moduleNamesSet = configuration.getModuleList().keySet();
         
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Demarage du module reseau du core");
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Demarage du module reseau du core concernant la communication des configurations du réseau");
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core" );
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core concernant la communication des configurations du réseau");
+        
         //la communication des configs entre els modules a pas besoin d'être rapide et peut donc se faire via un simple REQ-REP
         CoreConfigurationServer coreConfigurationServer = new CoreConfigurationServer(comConfiguration, configuration.getConfigListeningPort());
         coreConfigurationServer.start();
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Demarage du module reseau du core concernant l'écoute la gestion des commandes entrantes");
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core concernant l'écoute la gestion des commandes entrantes");
+        
         //on lance un proxy pour pouvoir gérer de nombreuses commandes en parralleles
-        Proxy proxy = new Proxy("tcp://*" + configuration.getPublicListeningPort() , INTERNAL_COM_ADRESS);
-        proxy.start();
+        Proxy proxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort() , INTERNAL_COM_ADRESS);
         //on lance les workers qui ferons le travail
         coreWorkers = new ArrayList<>();
         for(int i = 0 ; i < configuration.getWorkers() ; i++)
@@ -46,13 +46,21 @@ public class Zrtc {
             coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands(), configuration.getConfigListeningPort()));
             coreWorkers.get(i).start();
         }
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Demarage du module reseau du core termine");
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage des modules locaux");
+        Set<String> moduleList = internalModules.keySet();
+        for(String moduleName : moduleList)
+        {
+            Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module " + moduleName);
+            internalModules.get(moduleName).startModule();
+            Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module " + moduleName + " terminé");
+        }
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core termine");
         //configuration terminé
     }
     
     public static CoreConfiguration configure()
     {
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "debut de la configuration");
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "debut de la configuration");
         CoreConfiguration configuration;
         try 
         {
@@ -66,8 +74,8 @@ public class Zrtc {
         
         //génération de la liste des modules 
         Set<String> moduleNamesSet = configuration.getModuleList().keySet();
-        Map<String, Module> modules = new HashMap<>();
-        Map<String, String> comConfigurationContent = new HashMap<>();
+        internalModules = new HashMap<>();
+        comConfiguration = new HashMap<>();
         for(String moduleName : moduleNamesSet)
         {
             String adress = configuration.getModuleList().get(moduleName).getAdress();
@@ -75,20 +83,19 @@ public class Zrtc {
             {
                 adress += configuration.getModuleList().get(moduleName).getPublicListeningPort();
             }
-            comConfigurationContent.put(moduleName, adress);
+            comConfiguration.put(moduleName, adress);
             
             if(configuration.getModuleList().get(moduleName).isInternal())
             {
                 Module module = ModuleFactory.get(moduleName);
                 if (module != null) 
                 {
-                    modules.put(moduleName, module);
+                    internalModules.put(moduleName, module);
                 }
             }
         }
-        comConfiguration = new ComConfiguration();
-        comConfiguration.modulList = comConfigurationContent;
-        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, null, "Configuration termine");
+
+        Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Configuration termine");
         return configuration;
     }
     

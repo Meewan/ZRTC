@@ -23,11 +23,11 @@ public class ModuleCoreConfiguration extends Configuration
     protected boolean internal;
     
     public ModuleCoreConfiguration(Section module) 
-    {   
-        this.internal = Boolean.getBoolean(module.get("internal"));
+    {  
+        this.internal = "true".equals(module.get("internal").toLowerCase());
+        System.out.println("toto" + module.get("internal"));
         this.adress = module.get("adress");
         this.publicListeningPort = Integer.parseInt(module.get("listeningPort"));
-        System.out.println(this.toString());
     }
     
     @Override

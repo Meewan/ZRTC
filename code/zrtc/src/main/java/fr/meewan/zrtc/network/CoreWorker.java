@@ -8,8 +8,8 @@ package fr.meewan.zrtc.network;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.com.ComConfiguration;
 import fr.meewan.zrtc.com.Message;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.zeromq.ZMQ;
@@ -74,8 +74,7 @@ public class CoreWorker extends Thread
         speaker.connect("tcp://localhost:"+coreConfigListeningPort);
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);
-        ComConfiguration tmp = new JSONDeserializer<ComConfiguration>().deserialize(new String(reply));
-        this.comConfiguration = tmp.modulList;
+        this.comConfiguration = new JSONDeserializer<HashMap>().deserialize(new String(reply));
         speaker.close();
         context.term();
     }

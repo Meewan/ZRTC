@@ -6,6 +6,8 @@
 
 package fr.meewan.zrtc.module;
 
+import fr.meewan.zrtc.module.command.CommandModule;
+
 /**
  *
  * @author Meewan
@@ -16,6 +18,8 @@ public class ModuleFactory
     {
         switch(ModuleName)
         {
+            case "commandModule":
+                return new CommandModule();
             default:
                 return null;
         }

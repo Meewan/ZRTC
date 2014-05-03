@@ -7,7 +7,7 @@
 package fr.meewan.zrtc.network;
 
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.com.ComConfiguration;
+import java.util.HashMap;
 import org.zeromq.ZMQ;
 
 /**
@@ -20,12 +20,12 @@ public class CoreConfigurationServer extends Thread
     private final String listeningAddress;
 
     //surcharge du constructeur a des fin esthetique
-    public CoreConfigurationServer(ComConfiguration comconfiguration, Integer listeningPort) 
+    public CoreConfigurationServer(HashMap comconfiguration, Integer listeningPort) 
     {
         this(comconfiguration, listeningPort.toString());
     }
     
-    public CoreConfigurationServer(ComConfiguration comconfiguration, String listeningPort) 
+    public CoreConfigurationServer(HashMap comconfiguration, String listeningPort) 
     {
         this.listeningAddress = "tcp://*:"+listeningPort;
         JSONSerializer s = new JSONSerializer();
@@ -51,7 +51,7 @@ public class CoreConfigurationServer extends Thread
         context.term();
     }
 
-    public void setComconfiguration(ComConfiguration comconfiguration) 
+    public void setComconfiguration(HashMap comconfiguration) 
     {
         JSONSerializer s = new JSONSerializer();
         this.comconfiguration = s.serialize(comconfiguration);
