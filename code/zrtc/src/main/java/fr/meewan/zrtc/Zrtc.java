@@ -25,7 +25,7 @@ public class Zrtc {
     final public static String CONFIGURATION_FILE = "config.ini";
     final public static String INTERNAL_COM_ADRESS = "inproc://core_internal_com_adress"; 
     private static List<CoreWorker> coreWorkers;
-    public static HashMap comConfiguration;
+    public static HashMap<String, String> comConfiguration;
     private static Map<String, Module> internalModules;
     public static void main(String[] args) throws Exception
     {

@@ -9,3 +9,4 @@
 "fromnetwork" vaut true si le message a été généré par le réseau et false si le message est envoyé par un utilisateur
 "authorized" flag (true/false) disant si le module de permission a donner son autorisation a l'execution de la commande
 "correctsignature" flag (true/false) disant si le module de crypto a pu valider la signature
+"lifecyclestates" le nombre d'etapes dans el cycle de vie

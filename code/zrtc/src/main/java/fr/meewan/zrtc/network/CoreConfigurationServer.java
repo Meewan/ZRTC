@@ -20,12 +20,12 @@ public class CoreConfigurationServer extends Thread
     private final String listeningAddress;
 
     //surcharge du constructeur a des fin esthetique
-    public CoreConfigurationServer(HashMap comconfiguration, Integer listeningPort) 
+    public CoreConfigurationServer(HashMap<String, String> comconfiguration, Integer listeningPort) 
     {
         this(comconfiguration, listeningPort.toString());
     }
     
-    public CoreConfigurationServer(HashMap comconfiguration, String listeningPort) 
+    public CoreConfigurationServer(HashMap<String, String> comconfiguration, String listeningPort) 
     {
         this.listeningAddress = "tcp://*:"+listeningPort;
         JSONSerializer s = new JSONSerializer();

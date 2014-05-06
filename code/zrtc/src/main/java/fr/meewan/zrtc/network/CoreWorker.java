@@ -8,6 +8,7 @@ package fr.meewan.zrtc.network;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
+import fr.meewan.zrtc.utils.NetworkMessage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +47,35 @@ public class CoreWorker extends Thread
         {
             String request = socket.recvStr (0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
-            if(message.get("command") != null && ! message.get("command").equals(""))
+            if(message.get("command") != null && ! message.get("command").equals("") && commands.get(message.get("command"))!= null)
             {
                 List<String> lifeCycle = commands.get(message.get("command"));
-                for(int i = 0; i< lifeCycle.size(); i++)
+                int i;
+                for(i = 0; i< lifeCycle.size(); i++)
                 {
                     message.put("lifecycle" + i, lifeCycle.get(i));
                 }
+                message.put("lifecyclestates", Integer.toString(i));
+                message.put("state", "0");
+                String answer = new JSONSerializer().serialize(message);
+                speaker = context.socket(ZMQ.REQ);
+                //on se connecte au suivant
+                speaker.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
+                //on lui passe le message
+                speaker.send(answer,0);
+                //on ferme la connexion (on a pas besoin de sa réponse)
+                speaker.close();
+            }
+            else
+            {
+                message = NetworkMessage.generateErrorMessage(5, message.get("commandid"));
+                List<String> lifeCycle = commands.get(message.get("command"));
+                int i;
+                for(i = 0; i< lifeCycle.size(); i++)
+                {
+                    message.put("lifecycle" + i, lifeCycle.get(i));
+                }
+                message.put("lifecyclestates", Integer.toString(i));
                 message.put("state", "0");
                 String answer = new JSONSerializer().serialize(message);
                 speaker = context.socket(ZMQ.REQ);
@@ -73,14 +96,12 @@ public class CoreWorker extends Thread
      */
     public void loadNetworkConfiguration()
     {
-        Context context = ZMQ.context(1);
         ZMQ.Socket speaker = context.socket(ZMQ.REQ);
         speaker.connect("tcp://localhost:"+coreConfigListeningPort);
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);
         this.comConfiguration = new JSONDeserializer<HashMap>().deserialize(new String(reply));
         speaker.close();
-        context.term();
     }
     public void setCommands(Map<String, List<String>> commands) {
         this.commands = commands;
