@@ -24,12 +24,14 @@ public class CoreWorker extends Thread
     private String address;
     private Map<String,String> comConfiguration;
     private int coreConfigListeningPort;
+    private Context context;
 
-    public CoreWorker(String address, Map<String, List<String>> commands, int coreConfigListeningPort) 
+    public CoreWorker(String address, Map<String, List<String>> commands, int coreConfigListeningPort, Context context) 
     {
         this.commands = commands;
         this.address = address;
         this.coreConfigListeningPort = coreConfigListeningPort;
+        this.context = context;
         
     }
     
@@ -37,7 +39,6 @@ public class CoreWorker extends Thread
     public void run()
     {
         loadNetworkConfiguration();
-        Context context = ZMQ.context(1);
         ZMQ.Socket socket = context.socket(ZMQ.REP);
         ZMQ.Socket speaker;
         socket.connect (address);
@@ -65,7 +66,6 @@ public class CoreWorker extends Thread
             
         }
         //socket.close();
-        //context.term();
     }
 
     /**
