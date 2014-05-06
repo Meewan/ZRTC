@@ -8,7 +8,6 @@ package fr.meewan.zrtc.network;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.com.Message;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,15 +44,19 @@ public class CoreWorker extends Thread
         while (true) 
         {
             String request = socket.recvStr (0);
-            Message message = new JSONDeserializer<Message>().deserialize( request );
-            if(message.command != null && ! message.command.equals(""))
+            Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
+            if(message.get("command") != null && ! message.get("command").equals(""))
             {
-                message.lifeCycle = commands.get(message.command);
-                message.state = 0;
+                List<String> lifeCycle = commands.get(message.get("command"));
+                for(int i = 0; i< lifeCycle.size(); i++)
+                {
+                    message.put("lifecycle" + i, lifeCycle.get(i));
+                }
+                message.put("state", "0");
                 String answer = new JSONSerializer().serialize(message);
                 speaker = context.socket(ZMQ.REQ);
                 //on se connecte au suivant
-                speaker.connect(comConfiguration.get(message.lifeCycle.get(message.state)));
+                speaker.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
                 //on lui passe le message
                 speaker.send(answer,0);
                 //on ferme la connexion (on a pas besoin de sa réponse)
@@ -61,6 +64,7 @@ public class CoreWorker extends Thread
             }
             
         }
+        //socket.close();
         //context.term();
     }
 
