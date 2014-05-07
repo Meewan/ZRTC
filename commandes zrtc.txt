@@ -1,0 +1,26 @@
+Liste des commandes server
+syntaxe : COMMAND#ARG0#ARG1....
+
+CONNECT#[SERVER pUBLIC KEY] //annonce de la clef publique du server
+CONTACT#[ip/URL]#[port]//changement de serveur de commande
+JOIN#[ip/url]#[port]//information sur comment rejoindre le chan demandé
+MODE#[source]#[droits]//information du client sur un changement de droits
+MESSAGE#[source]#[message]//ouverture d'un canal privé via le serveur
+P2PMSG#[source]#[ip]#[PORT]//couverture du'une connexion de client a client
+DEFAULT#[errcode]//réponse par defaut ou erreur.
+PING// mise en place d'une boucle de retour avec le serveur
+
+liset des commandes clients
+user#command#arg0#arg1...#[gpg signature]
+
+CONNECT#[pseudo]#[public key]//annonce de demande de connexion a un serveur
+MODE[[chan]#[cible]#[droits]//demande de modifications de droits
+JOIN#[cible]//demande de connexion au chan.
+MESSAGE#[cible]#[message]//message privé du serv
+P2PMSG#[cible]#[ip]#[port]//demande de connexion P2P a un client(ne sera pas implémenter dans un premier temps)
+DEFAULT#[errcode]//réponse par defaut ou erreur.
+SAY#[cible]#[message] //envois [message] sur le canal [cible]
+REGISTER#[mail]#[password]//enregistremnt d'un compte
+IDENTIFY#[password]// login sur le réseau.
+NICK#[nouveau pseudo]//renome la personne
+PING// mise en place d'une boucle de retour avec le serveur

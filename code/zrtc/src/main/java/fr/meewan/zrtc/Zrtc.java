@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
 /**
  *
  * @author rpaoloni
@@ -23,7 +25,7 @@ public class Zrtc {
     final public static String CONFIGURATION_FILE = "config.ini";
     final public static String INTERNAL_COM_ADRESS = "inproc://core_internal_com_adress"; 
     private static List<CoreWorker> coreWorkers;
-    public static HashMap comConfiguration;
+    public static HashMap<String, String> comConfiguration;
     private static Map<String, Module> internalModules;
     public static void main(String[] args) throws Exception
     {
@@ -41,9 +43,10 @@ public class Zrtc {
         Proxy proxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort() , INTERNAL_COM_ADRESS);
         //on lance les workers qui ferons le travail
         coreWorkers = new ArrayList<>();
+        Context context = ZMQ.context(1);
         for(int i = 0 ; i < configuration.getWorkers() ; i++)
         {
-            coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands(), configuration.getConfigListeningPort()));
+            coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands(), configuration.getConfigListeningPort(), context));
             coreWorkers.get(i).start();
         }
         Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage des modules locaux");

@@ -25,7 +25,6 @@ public class ModuleCoreConfiguration extends Configuration
     public ModuleCoreConfiguration(Section module) 
     {  
         this.internal = "true".equals(module.get("internal").toLowerCase());
-        System.out.println("toto" + module.get("internal"));
         this.adress = module.get("adress");
         this.publicListeningPort = Integer.parseInt(module.get("listeningPort"));
     }

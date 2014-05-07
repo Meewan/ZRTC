@@ -11,3 +11,6 @@ release.properties
 .classpath
 .project
 .settings/
+
+## project
+code/zrtc/nbactions.xml
