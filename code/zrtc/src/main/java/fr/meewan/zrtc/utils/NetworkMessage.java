@@ -24,6 +24,7 @@ public class NetworkMessage {
     3: signature pgp invalide
     4: missing arguments
     5: commande inconue
+    6: cible non trouvé
     */
     public static Map<String,String> generateErrorMessage(int reason, String commandId)
     {
@@ -49,6 +50,23 @@ public class NetworkMessage {
         message.put("commandid", commandId);
         message.put("arg0", Integer.toString(200));
         message.put("argc", (Integer.toString(1)));
+        message.put("authorized", "true");
+        message.put("correctsignature", "true");
+        message.put("fromnetwork" , "true");
+        return message;
+    }
+   
+    /**
+     * genere un message de ping
+     * @param commandId
+     * @return 
+     */
+    public static Map<String, String> generatePingMessage(String commandId)
+    {
+        Map <String, String > message = new HashMap<String,String>();
+        message.put("command", "ping");
+        message.put("commandid", commandId);
+        message.put("argc", (Integer.toString(0)));
         message.put("authorized", "true");
         message.put("correctsignature", "true");
         message.put("fromnetwork" , "true");

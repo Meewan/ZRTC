@@ -133,6 +133,11 @@ public class CommandServer extends Thread
     {
         return this.waitingCommands.get(commandId);
     }
+
+    public CommandExternalWorker getActiveExternalConnexions(String user) 
+    {
+        return this.activeExternalConnexions.get(user);
+    }
     
     public synchronized void addToWaitingCommands(String commandId, CommandExternalWorker externalConnexion)
     {

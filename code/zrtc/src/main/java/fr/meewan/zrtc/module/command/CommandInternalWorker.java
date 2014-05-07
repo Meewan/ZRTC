@@ -49,13 +49,15 @@ public class CommandInternalWorker extends Thread
             {
                sendInNetwork(message);
             }
-            if (message != null)
-            {
-                sendToClient(message);
-            }
         }
     }
     
+    /**
+     * Méthode executant le traitement a faire et vérifiant els droits.
+     * Cette méthode retourne null si si elle ne trouve pas le worker et modifie lemodifie sinon
+     * @param message
+     * @return 
+     */
     private Map<String, String> execute(Map <String, String> message)
     {
         String command = message.get("command");
@@ -79,7 +81,7 @@ public class CommandInternalWorker extends Thread
         }
         else
         {
-            switch (command)
+            switch (command.toLowerCase())// traitement pour chaque commande
             {
                 case "ping":
                 {
@@ -95,9 +97,106 @@ public class CommandInternalWorker extends Thread
                    }
                 }
                     break;
-                default:
-                    message = NetworkMessage.generateErrorMessage(0, commandId);
+                case "connect":
+                {
+                    if(!sendToClient(NetworkMessage.generatePingMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
                     break;
+                case "mode":
+                {
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "join":
+                {
+                    if(!sendToClient(NetworkMessage.generatePingMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "message":
+                {
+                    CommandExternalWorker target = commandServer.getActiveExternalConnexions(message.get("arg0"));
+                    if(target == null)
+                    {
+                        if(sendToClient(NetworkMessage.generateErrorMessage(6, commandId)))
+                        {
+                            return NetworkMessage.generateErrorMessage(6, commandId);
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        Map<String, String> newMessage = new HashMap<>(message);
+                        newMessage.put("arg0", message.get("user"));
+                        target.setMessage(newMessage);
+                        target.wakeUp();
+                        if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                        {
+                            return null;
+                        }
+                    }
+                }
+                    break;
+                case "default":
+                {
+                    if("true".equals(message.get("fromnetwork")))
+                    {
+                        if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "say":
+                {
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "register":
+                {
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "identify":
+                {
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "nick":
+                {
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                default:
+                    return NetworkMessage.generateErrorMessage(0, commandId);
                     
             }
         }
@@ -115,7 +214,7 @@ public class CommandInternalWorker extends Thread
         speaker.close();
     }
     
-    private void sendToClient(Map<String, String> message)
+    private boolean sendToClient(Map<String, String> message)
     {
         CommandExternalWorker external = commandServer.getWaitingCommand(message.get("commandid"));
         if (external != null)
@@ -123,7 +222,8 @@ public class CommandInternalWorker extends Thread
             external.setMessage(message);
             external.wakeUp();
             commandServer.removeFromWaitingCommands(message.get("commandid"));
+            return true;
         }
-            
+        return false;
     }
 }
