@@ -6,6 +6,7 @@ import fr.meewan.zrtc.configuration.CoreConfiguration;
 import fr.meewan.zrtc.network.CoreConfigurationServer;
 import fr.meewan.zrtc.network.CoreWorker;
 import fr.meewan.zrtc.network.Proxy;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,7 @@ import org.zeromq.ZMQ.Context;
 public class Zrtc {
 
 
-    final public static String CONFIGURATION_FILE = "config.ini";
+    final public static String CONFIGURATION_FILE = "config" + File.separator + "config.ini";
     final public static String INTERNAL_COM_ADRESS = "inproc://core_internal_com_adress"; 
     private static List<CoreWorker> coreWorkers;
     public static HashMap<String, String> comConfiguration;
