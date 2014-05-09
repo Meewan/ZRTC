@@ -16,9 +16,9 @@ public class ModuleFactory
 {
     public static Module get(String ModuleName)
     {
-        switch(ModuleName)
+        switch(ModuleName.toLowerCase())
         {
-            case "commandModule":
+            case "commandmodule":
                 return new CommandModule();
             default:
                 return null;

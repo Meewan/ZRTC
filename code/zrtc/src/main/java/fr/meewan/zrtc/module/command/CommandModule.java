@@ -7,6 +7,7 @@
 package fr.meewan.zrtc.module.command;
 
 import fr.meewan.zrtc.module.Module;
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class CommandModule implements Module
 {
-    private final String CONFPATH = "command.ini";
+    private final String CONFPATH = "config" + File.separator + "command.ini";
     private CommandServer commandServer;
     public CommandModule()
     {
