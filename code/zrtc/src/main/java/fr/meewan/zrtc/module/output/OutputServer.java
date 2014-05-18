@@ -8,7 +8,6 @@ package fr.meewan.zrtc.module.output;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.module.command.CommandExternalWorker;
 import fr.meewan.zrtc.network.Proxy;
 import fr.meewan.zrtc.utils.NetworkMessage;
 
@@ -164,6 +163,10 @@ public class OutputServer extends Thread
         boolean correctsignature = message.get("correctsignature")!= null && "true".equals(message.get("correctsignature"));
         String commandId = message.get("commandid");
         String user = message.get("user");
+        // En attendant la vrai variable
+        String uId = user;
+        // Nécessaire pour la commande nick??
+        String oldUser = user;
         int state = Integer.parseInt(message.get("state")) + 1;
         int argc = Integer.parseInt(message.get("argc"));
         List<String> args = new ArrayList<>();
@@ -185,20 +188,20 @@ public class OutputServer extends Thread
             {
                 case "join":
                 {
-                    if(clients.containsKey(user))
+                    if(clients.containsKey(uId))
                     {
-                    	clients.get(user).subscribe(args.get(0));
+                    	clients.get(uId).subscribe(args.get(0));
                     }
                     else
                     {
-                    	clients.put(user, new VirtualClient(coreContext, edgeContext, user, args.get(0)));
+                    	clients.put(uId, new VirtualClient(coreContext, edgeContext, user, args.get(0)));
                     }
                 	
                 	ZMsg msg = new ZMsg();
                 	msg.add(args.get(0));
                 	String content = 
                 			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary((user + " a rejoint la conversation").getBytes());
+                			DatatypeConverter.printBase64Binary((user + " has joined the channel").getBytes());
                 	msg.add(content);
                 	msg.send(publisher);
                 }
@@ -219,7 +222,83 @@ public class OutputServer extends Thread
                     
                 case "nick":
                 {
+                	if(clients.containsKey(uId))
+                    {
+                    	ArrayList<String> chansToNotify = clients.get(uId).getChans();
+                    	ZMsg msg = new ZMsg();
+                    	String content = 
+                    			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
+                    			DatatypeConverter.printBase64Binary((oldUser + " is now known as " + user).getBytes());
+                    	msg.add(content);
+                    	for(String chan : chansToNotify)
+                    	{
+                    		ZMsg tmp = msg.duplicate();
+                    		tmp.addFirst(chan);
+                    		tmp.send(publisher);
+                    	}
+                    }
+                }
+                    break;
                     
+                case "part":
+                {
+                	if(clients.containsKey(uId))
+                    {
+                    	for(String chan : args)
+                    	{
+                    		VirtualClient client = clients.get(uId);
+                    		if(client.getChans().contains(chan))
+                    		{
+                    			client.unsubscribe(chan);
+                    			ZMsg msg = new ZMsg();
+                    			msg.add(chan);
+                            	String content = 
+                            			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
+                            			DatatypeConverter.printBase64Binary((user + "has left the channel").getBytes());
+                            	msg.add(content);
+                    		}
+                    	}
+                    }
+                }
+                    break;
+                    
+                case "partall":
+                {
+                	if(clients.containsKey(user))
+                    {
+                    	VirtualClient client = clients.get(uId);
+                		for(String chan : client.getChans())
+                		{
+                			client.unsubscribe(chan);
+                			ZMsg msg = new ZMsg();
+                			msg.add(chan);
+                        	String content = 
+                        			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
+                        			DatatypeConverter.printBase64Binary((user + "has left the channel").getBytes());
+                        	msg.add(content);
+                		}
+                    }
+                }
+                    break;
+                    
+                case "quit":
+                {
+                	if(clients.containsKey(uId))
+                    {
+                    	VirtualClient client = clients.get(user);
+                		for(String chan : client.getChans())
+                		{
+                			client.unsubscribe(chan);
+                			ZMsg msg = new ZMsg();
+                			msg.add(chan);
+                        	String content = 
+                        			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
+                        			DatatypeConverter.printBase64Binary((user + "has left the channel (" + args.get(0) + ")").getBytes());
+                        	msg.add(content);
+                		}
+                		clients.remove(uId);
+                		client.setStop(true);
+                    }
                 }
                     break;
                     
@@ -233,14 +312,11 @@ public class OutputServer extends Thread
     
     private void sendInNetwork(Map<String, String> message)
     {
-    	return;
-    	/*
         //on se connecte au au suivant pour qu'il complete l'objet
     	internalOutput.connect(getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
     	internalOutput.send(new JSONSerializer().serialize(message),0);
         //on ferme la connexion (on a pas besoin de sa réponse)
     	internalOutput.disconnect(getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
-    	*/
     }
 }
