@@ -23,11 +23,36 @@ public class Proxy extends Thread
      */
     private final String frontEndAdress;
     private final String backEndAdress;
+    private final ZContext frontContext;
+    private final ZContext backContext;
+    private Socket frontend;
+    private Socket backend;
+    
 
     public Proxy(String frontEndAdress, String backEndAdress) 
     {
         this.frontEndAdress = frontEndAdress;
         this.backEndAdress = backEndAdress;
+        frontContext = new ZContext();
+        backContext = frontContext;
+        this.start();
+    }
+
+    public Proxy(String frontEndAdress, String backEndAdress, ZContext ctx) 
+    {
+        this.frontEndAdress = frontEndAdress;
+        this.backEndAdress = backEndAdress;
+        frontContext = ctx;
+        backContext = ctx;
+        this.start();
+    }
+
+    public Proxy(String frontEndAdress, ZContext ctx1, String backEndAdress, ZContext ctx2) 
+    {
+        this.frontEndAdress = frontEndAdress;
+        this.backEndAdress = backEndAdress;
+        frontContext = ctx1;
+        backContext = ctx2;
         this.start();
     }
     
@@ -35,17 +60,19 @@ public class Proxy extends Thread
     @Override
     public void run()
     {
-        ZContext ctx = new ZContext();
-        Socket frontend = ctx.createSocket(ZMQ.ROUTER);
+        frontend = frontContext.createSocket(ZMQ.ROUTER);
         frontend.bind(frontEndAdress);
 
-        Socket backend = ctx.createSocket(ZMQ.DEALER);
+        backend = backContext.createSocket(ZMQ.DEALER);
         backend.bind(backEndAdress);
         
         ZMQ.proxy(frontend, backend, null);
-        
-        //inutile mais au cas ou
-        ctx.destroy();
-        
+    }
+    
+    public Proxy restart(String frontEndAddress, String backEndAddress)
+    {
+    	frontContext.destroySocket(frontend);
+    	backContext.destroySocket(backend);
+    	return new Proxy(frontEndAddress, frontContext, backEndAddress, backContext);
     }
 }

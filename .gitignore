@@ -1,4 +1,16 @@
-/code/zrtc/target/
-/code/mavenproject1/target/
-/code/mavenproject2/target/
+# Maven
+log/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+## Eclipse 
+.classpath
+.project
+.settings/
+
+## project
 code/zrtc/nbactions.xml

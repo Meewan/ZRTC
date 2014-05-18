@@ -7,6 +7,7 @@
 package fr.meewan.zrtc.module;
 
 import fr.meewan.zrtc.module.command.CommandModule;
+import fr.meewan.zrtc.module.output.OutputModule;
 
 /**
  *
@@ -20,6 +21,10 @@ public class ModuleFactory
         {
             case "commandmodule":
                 return new CommandModule();
+                
+            case "output":
+            	return new OutputModule();
+                
             default:
                 return null;
         }
