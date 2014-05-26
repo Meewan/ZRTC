@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 /**
@@ -40,11 +41,13 @@ public class Zrtc {
         coreConfigurationServer.start();
         Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core concernant l'écoute la gestion des commandes entrantes");
         
+        //creation du ZContext
+        ZContext context = new ZContext();
         //on lance un proxy pour pouvoir gérer de nombreuses commandes en parralleles
-        Proxy proxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort() , INTERNAL_COM_ADRESS);
+        Proxy proxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort() , INTERNAL_COM_ADRESS, context);
         //on lance les workers qui ferons le travail
         coreWorkers = new ArrayList<>();
-        Context context = ZMQ.context(1);
+        
         for(int i = 0 ; i < configuration.getWorkers() ; i++)
         {
             coreWorkers.add(new CoreWorker(INTERNAL_COM_ADRESS, configuration.getCommands(), configuration.getConfigListeningPort(), context));

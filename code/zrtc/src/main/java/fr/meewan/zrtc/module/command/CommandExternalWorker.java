@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.zeromq.ZMQ;
 import javax.xml.bind.DatatypeConverter;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ.Context;
 
 /**
@@ -24,14 +25,14 @@ import org.zeromq.ZMQ.Context;
 public class CommandExternalWorker extends Thread
 {
     public static final String DELIMITER = "#";
-    private Context context;
+    private ZContext context;
     private CommandServer commandServer;
     private String rawCommand;
     private Map<String, String> message;
     private boolean sleep;
     private String commandId;
 
-    public CommandExternalWorker(CommandServer commandServer, Context context) 
+    public CommandExternalWorker(CommandServer commandServer, ZContext context) 
     {
         this.sleep = true;
         this.commandServer = commandServer;
@@ -43,7 +44,7 @@ public class CommandExternalWorker extends Thread
     public void run()
     {
         //initialisation du réseau
-        ZMQ.Socket socket = context.socket(ZMQ.REP);
+        ZMQ.Socket socket = context.createSocket(ZMQ.REP);
         socket.connect (CommandServer.EXTERNAL_COM_ADRESS);
         //écoute d'une demande
         rawCommand = socket.recvStr (0);
@@ -62,7 +63,7 @@ public class CommandExternalWorker extends Thread
         }
         else
         {
-            ZMQ.Socket speaker = context.socket(ZMQ.REQ);
+            ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
             //on se connecte au noyau pour qu'il complete l'objet
             speaker.connect(commandServer.getConfiguration().getCoreAddress() + ":" + commandServer.getConfiguration().getCorePort());
             //on lui passe le message

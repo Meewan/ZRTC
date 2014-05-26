@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
@@ -25,7 +26,7 @@ import org.zeromq.ZMQ.Context;
 public class CommandServer extends Thread
 {
     private CommandConfiguration configuration;
-    private Context context;
+    private ZContext context;
     final public static String EXTERNAL_COM_ADRESS = "inproc://command_external_com_adress";
     final public static String INTERNAL_COM_ADRESS = "inproc://command_internal_com_adress";
     private boolean stop;//champ indiquant si l'arret du serveur a été demandé
@@ -41,7 +42,7 @@ public class CommandServer extends Thread
         this.stop = false;
         this.activeExternalConnexions = new HashMap<>();
         this.waitingCommands = new HashMap<>();
-        context = ZMQ.context(1);
+        context =  new ZContext();
     }
 
     @Override
@@ -50,7 +51,7 @@ public class CommandServer extends Thread
         logger.log(Level.INFO, "lancement du serveur de commande");
         loadNetworkConfiguration();
         logger.log(Level.INFO, "lancement du proxy pour le serveur de commande");
-        Proxy proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), EXTERNAL_COM_ADRESS);
+        Proxy proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), EXTERNAL_COM_ADRESS, context);
         
         //on lance le premier thread, c'est qui qui lancera les autres petit a petit
         (new CommandExternalWorker(this, context)).start();
@@ -86,7 +87,7 @@ public class CommandServer extends Thread
     public void loadNetworkConfiguration()
     {
         logger.log(Level.INFO, "Récuperation de la configuration du réseau serveur de commande");
-        ZMQ.Socket speaker = context.socket(ZMQ.REQ);
+        ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
         speaker.connect("tcp://"+ configuration.getConfigAddress() + ":" + configuration.getConfigPort());
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);

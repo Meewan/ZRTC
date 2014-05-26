@@ -12,6 +12,7 @@ import fr.meewan.zrtc.utils.NetworkMessage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
@@ -25,9 +26,9 @@ public class CoreWorker extends Thread
     private String address;
     private Map<String,String> comConfiguration;
     private int coreConfigListeningPort;
-    private Context context;
+    private ZContext context;
 
-    public CoreWorker(String address, Map<String, List<String>> commands, int coreConfigListeningPort, Context context) 
+    public CoreWorker(String address, Map<String, List<String>> commands, int coreConfigListeningPort, ZContext context) 
     {
         this.commands = commands;
         this.address = address;
@@ -40,12 +41,13 @@ public class CoreWorker extends Thread
     public void run()
     {
         loadNetworkConfiguration();
-        ZMQ.Socket socket = context.socket(ZMQ.REP);
+        ZMQ.Socket socket = context.createSocket(ZMQ.REP);
         ZMQ.Socket speaker;
         socket.connect (address);
         while (true) 
         {
             String request = socket.recvStr (0);
+            socket.send("ok", 0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
             if(message.get("command") != null && ! message.get("command").equals("") && commands.get(message.get("command"))!= null)
             {
@@ -58,7 +60,7 @@ public class CoreWorker extends Thread
                 message.put("lifecyclestates", Integer.toString(i));
                 message.put("state", "0");
                 String answer = new JSONSerializer().serialize(message);
-                speaker = context.socket(ZMQ.REQ);
+                speaker = context.createSocket(ZMQ.REQ);
                 //on se connecte au suivant
                 speaker.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
                 //on lui passe le message
@@ -78,7 +80,7 @@ public class CoreWorker extends Thread
                 message.put("lifecyclestates", Integer.toString(i));
                 message.put("state", "0");
                 String answer = new JSONSerializer().serialize(message);
-                speaker = context.socket(ZMQ.REQ);
+                speaker = context.createSocket(ZMQ.REQ);
                 //on se connecte au suivant
                 speaker.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
                 //on lui passe le message
@@ -96,7 +98,7 @@ public class CoreWorker extends Thread
      */
     public void loadNetworkConfiguration()
     {
-        ZMQ.Socket speaker = context.socket(ZMQ.REQ);
+        ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
         speaker.connect("tcp://localhost:"+coreConfigListeningPort);
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);
