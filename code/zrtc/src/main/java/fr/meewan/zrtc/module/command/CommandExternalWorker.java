@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import org.zeromq.ZMQ;
 import javax.xml.bind.DatatypeConverter;
 import org.zeromq.ZContext;
-import org.zeromq.ZMQ.Context;
 
 /**
  * Implementation de la logique metier dans un thread pour la ogique 1 thread 
@@ -201,6 +200,7 @@ public class CommandExternalWorker extends Thread
     public void setMessage(Map<String, String> message) {
         this.message = message;
     }
+    
     
     
 }

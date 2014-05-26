@@ -129,6 +129,15 @@ public class CommandServer extends Thread
     {
         this.activeExternalConnexions.remove(clientName);
     }
+    public Map<String,CommandExternalWorker> getActiveExternalConnexions()
+    {
+        return activeExternalConnexions;
+    }
+
+    public Map<String, CommandExternalWorker> getWaitingCommands() {
+        return waitingCommands;
+    }
+    
     
     public CommandExternalWorker getWaitingCommand(String commandId)
     {

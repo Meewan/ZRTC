@@ -25,6 +25,7 @@ public class NetworkMessage {
     4: missing arguments
     5: commande inconue
     6: cible non trouvé
+    7: timeout
     */
     public static Map<String,String> generateErrorMessage(int reason, String commandId)
     {
