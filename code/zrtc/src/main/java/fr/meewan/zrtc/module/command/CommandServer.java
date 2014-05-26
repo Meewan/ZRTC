@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Context;
 
 /**
  * Implémentation réelle de la logique de controle du module de commande dans un
@@ -26,13 +26,13 @@ import org.zeromq.ZMQ.Context;
 public class CommandServer extends Thread
 {
     private CommandConfiguration configuration;
-    private ZContext context;
+    private final ZContext context;
     final public static String EXTERNAL_COM_ADRESS = "inproc://command_external_com_adress";
     final public static String INTERNAL_COM_ADRESS = "inproc://command_internal_com_adress";
     private boolean stop;//champ indiquant si l'arret du serveur a été demandé
     private Map<String, String> comConfiguration;
-    private Map<String, CommandExternalWorker> activeExternalConnexions;
-    private Map<String, CommandExternalWorker> waitingCommands;
+    private final Map<String, CommandExternalWorker> activeExternalConnexions;
+    private final Map<String, CommandExternalWorker> waitingCommands;
     private static final Logger logger = Logger.getLogger(CommandServer.class.getName());
     private List<CommandInternalWorker> internalWorkers;
 
@@ -40,8 +40,8 @@ public class CommandServer extends Thread
     {
        
         this.stop = false;
-        this.activeExternalConnexions = new HashMap<>();
-        this.waitingCommands = new HashMap<>();
+        this.activeExternalConnexions = new ConcurrentHashMap<>();
+        this.waitingCommands = new ConcurrentHashMap<>();
         context =  new ZContext();
     }
 
@@ -91,10 +91,10 @@ public class CommandServer extends Thread
         speaker.connect("tcp://"+ configuration.getConfigAddress() + ":" + configuration.getConfigPort());
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);
-        logger.log(Level.FINE, "La configuration sérialisé fait " + reply.length + " byte de long");
+        logger.log(Level.FINE, "La configuration s\u00e9rialis\u00e9 fait {0} byte de long", reply.length);
         String serializedConfiguration = new String(reply);
         this.comConfiguration = new JSONDeserializer<HashMap>().deserialize(serializedConfiguration);
-        if(this.comConfiguration != null && this.comConfiguration.size() != 0)
+        if(this.comConfiguration != null && !this.comConfiguration.isEmpty())
         {
             logger.log(Level.INFO, "configuration du réseau reçut et deserialisé avec succes");
         }
@@ -121,7 +121,7 @@ public class CommandServer extends Thread
         this.stop = stop;
     }
     
-    public synchronized void addToActiveExternalConnexions(String clientName, CommandExternalWorker externalConnexion)
+    public void addToActiveExternalConnexions(String clientName, CommandExternalWorker externalConnexion)
     {
         this.activeExternalConnexions.put(clientName, externalConnexion);
     }
@@ -140,11 +140,11 @@ public class CommandServer extends Thread
         return this.activeExternalConnexions.get(user);
     }
     
-    public synchronized void addToWaitingCommands(String commandId, CommandExternalWorker externalConnexion)
+    public void addToWaitingCommands(String commandId, CommandExternalWorker externalConnexion)
     {
         this.activeExternalConnexions.put(commandId, externalConnexion);
     }
-    public synchronized void removeFromWaitingCommands(String clientName)
+    public void removeFromWaitingCommands(String clientName)
     {
         this.activeExternalConnexions.remove(clientName);
     }
