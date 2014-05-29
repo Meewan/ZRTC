@@ -39,7 +39,6 @@ public class CommandServer extends Thread
     public CommandServer() 
     {
        
-        this.stop = false;
         this.activeExternalConnexions = new ConcurrentHashMap<>();
         this.waitingCommands = new ConcurrentHashMap<>();
         context =  new ZContext();
@@ -49,6 +48,7 @@ public class CommandServer extends Thread
     public void run()
     {
         logger.log(Level.INFO, "lancement du serveur de commande");
+        this.stop = false;
         loadNetworkConfiguration();
         logger.log(Level.INFO, "lancement du proxy pour le serveur de commande");
         Proxy proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), EXTERNAL_COM_ADRESS, context);
