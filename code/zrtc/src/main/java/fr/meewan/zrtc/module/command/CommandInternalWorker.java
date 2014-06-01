@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Context;
 
 /**
  * worker effectuant els taches venant du réseau interne
@@ -23,10 +23,10 @@ import org.zeromq.ZMQ.Context;
 public class CommandInternalWorker extends Thread
 {
     private CommandServer commandServer;
-    private Context  context;
+    private ZContext  context;
     private boolean stop;
     
-    public CommandInternalWorker(CommandServer commandServer, Context context) 
+    public CommandInternalWorker(CommandServer commandServer, ZContext context) 
     {
         this.commandServer = commandServer;
         this.context= context;
@@ -37,13 +37,14 @@ public class CommandInternalWorker extends Thread
     public void run()
     {
         //initialisation du réseau
-        ZMQ.Socket socket = context.socket(ZMQ.REP);
+        ZMQ.Socket socket = context.createSocket(ZMQ.REP);
         socket.connect (CommandServer.INTERNAL_COM_ADRESS);
         while(! this.stop)
         {
             //écoute d'une demande
             String rawMessage = socket.recvStr (0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize(rawMessage);
+            socket.send("ok", 0);
             message = execute(message);
             if(message != null && Integer.parseInt(message.get("state")) <= Integer.parseInt(message.get("lifecyclestates")))
             {
@@ -203,9 +204,13 @@ public class CommandInternalWorker extends Thread
         return message;
     }
     
+    /**
+     * Méthode faisant suivre le message au suivant sur dans le cycle de vie
+     * @param message 
+     */
     private void sendInNetwork(Map<String, String> message)
     {
-         ZMQ.Socket speaker = context.socket(ZMQ.REQ);
+         ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
         //on se connecte au au suivant pour qu'il complete l'objet
         speaker.connect(commandServer.getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
@@ -214,6 +219,12 @@ public class CommandInternalWorker extends Thread
         speaker.close();
     }
     
+    
+    /**
+     * méthode envoyant le message passé a l'argument au command id compris dans el message.
+     * @param message
+     * @return true si la personne a été trouvé et false sinon
+     */
     private boolean sendToClient(Map<String, String> message)
     {
         CommandExternalWorker external = commandServer.getWaitingCommand(message.get("commandid"));

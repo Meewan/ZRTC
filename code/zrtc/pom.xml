@@ -26,13 +26,13 @@
                         <mainClass>fr.meewan.zrtc.Zrtc</mainClass>
                     </manifest>
                 </archive> -->
-            <archive>
-      <manifest>
-      <addClasspath>true</addClasspath>
-      <classpathPrefix>lib/</classpathPrefix>
-          <mainClass>fr.meewan.zrtc.Zrtc</mainClass>
-      </manifest>
-    </archive>
+                <archive>
+                  <manifest>
+                    <addClasspath>true</addClasspath>
+                      <classpathPrefix>lib/</classpathPrefix>
+                        <mainClass>fr.meewan.zrtc.Zrtc</mainClass>
+                  </manifest>
+                </archive>
             </configuration>
         </plugin>
         <plugin>

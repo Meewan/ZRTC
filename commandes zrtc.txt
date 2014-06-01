@@ -1,4 +1,4 @@
-Liste des commandes server
+﻿Liste des commandes server
 syntaxe : COMMAND#ARG0#ARG1....
 
 CONNECT#[SERVER pUBLIC KEY] //annonce de la clef publique du server
@@ -22,5 +22,6 @@ DEFAULT#[errcode]//réponse par defaut ou erreur.
 SAY#[cible]#[message] //envois [message] sur le canal [cible]
 REGISTER#[mail]#[password]//enregistremnt d'un compte
 IDENTIFY#[password]// login sur le réseau.
+
 NICK#[nouveau pseudo]//renome la personne
 PING// mise en place d'une boucle de retour avec le serveur
