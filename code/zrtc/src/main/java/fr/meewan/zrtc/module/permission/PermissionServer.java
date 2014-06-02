@@ -8,8 +8,12 @@ package fr.meewan.zrtc.module.permission;
 
 import flexjson.JSONDeserializer;
 import fr.meewan.zrtc.module.permission.Cache.ChanCache;
+import fr.meewan.zrtc.module.permission.Cache.ChanCacheImpl;
+import fr.meewan.zrtc.module.permission.Cache.UserCache;
 import fr.meewan.zrtc.module.permission.Cache.UserCacheImpl;
 import fr.meewan.zrtc.module.permission.business.ListRefCommand;
+import fr.meewan.zrtc.network.Proxy;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,22 +30,67 @@ import org.zeromq.ZMQ;
  */
 public class PermissionServer extends Thread
 {
+    private final String INTERNAl_COM_ADRESS = "inproc://internam_permission_module_communication";
     private PermissionConfiguration configuration;
     private Map<String, String> comConfiguration; 
-    private UserCacheImpl userCache;
-    private ChanCache cacheMap;
+    private final UserCache userCache;
+    private final ChanCache chanCache;
+    private final Map<String, Boolean> defaultRightMap;
     private static final Logger logger = Logger.getLogger(PermissionServer.class.getName());
-    
+    private List<PermissionWorker> workers;
+    private boolean stop = false;
     private ZContext context;
+    private Proxy proxy;
+
+    public PermissionServer() 
+    {
+        defaultRightMap = new HashMap<>();
+        try 
+        {
+            configuration = new PermissionConfiguration(null);
+        } 
+        catch (IOException ex) 
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for(String command : configuration.getCommands().keySet())
+        {
+            defaultRightMap.put(command, configuration.getCommands().get(command).toLowerCase().equals("true"));
+        }
+        userCache = new UserCacheImpl(configuration.getAdminUser(), configuration.getAdminPassword());
+        chanCache = new ChanCacheImpl();   
+        workers = new ArrayList<>();
+    }
     
     @Override
     public void run()
     {
+        context = new ZContext();
         logger.log(Level.INFO, "Chargement des données du réseau");
         loadNetworkConfiguration();
+        logger.log(Level.INFO, "Lancement du proxy pour les workers");
+        proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAl_COM_ADRESS, context);
         logger.log(Level.INFO, "verification des commandes enregistré en base");
         checkCommandInBase();
-
+        
+        for (int i = 0; i < configuration.getMaxWorkers(); i++)
+        {
+            workers.add(new PermissionWorker(this, context));
+            workers.get(i).run();
+        }
+        //on garde en vie
+        while (!stop)
+        {
+            synchronized(this)
+            {
+                try {
+                    this.wait(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        logger.log(Level.WARNING, "mort du serveur de Permission");
     }
 
     /**
@@ -173,6 +222,30 @@ public class PermissionServer extends Thread
         {
             Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    public String getINTERNAl_COM_ADRESS() {
+        return INTERNAl_COM_ADRESS;
+    }
+
+    public Map<String, String> getComConfiguration() {
+        return comConfiguration;
+    }
+
+    public UserCache getUserCache() {
+        return userCache;
+    }
+
+    public ChanCache getChanCache() {
+        return chanCache;
+    }
+
+    public Map<String, Boolean> getDefaultRightMap() {
+        return defaultRightMap;
     }
     
 }
