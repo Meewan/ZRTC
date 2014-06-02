@@ -8,6 +8,8 @@ package fr.meewan.zrtc.module.permission.Cache;
 
 import fr.meewan.zrtc.module.permission.business.User;
 import fr.meewan.zrtc.module.permission.business.UserRight;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -125,6 +127,7 @@ public class UserCacheImpl implements UserCache{
                 cache.get(user).setPassword(password);
                 cache.get(user).setFromBase(true);
                 cache.get(user).getUser().persist(connection);
+                cache.get(user).registerRights(connection);
                 cache.get(user).setRegistered(true);
                 return true;
             }
@@ -182,6 +185,16 @@ public class UserCacheImpl implements UserCache{
     {
         return cache.containsKey(user);
     }
+
+    @Override
+    public String getUid(String user) 
+    {
+        if(cache.containsKey(user))
+        {
+            return cache.get(user).getUid();
+        }
+        return null;
+    }
     
     
     private class UserObject
@@ -189,7 +202,8 @@ public class UserCacheImpl implements UserCache{
         private boolean fromBase = false;
         private User user;
         private Map <String, Map<String, String>> rightMap;
-        private String pgpKey;
+        private final String pgpKey;
+        private final String uid;
         //indique si la personne a entré son password ou non
         private boolean registered = false;
         //flag indiquant si l'utilisateur est l'admin (root) de l'application
@@ -197,6 +211,7 @@ public class UserCacheImpl implements UserCache{
 
         public UserObject(String userName, String pgpKey,String adminUser, String adminPassword, Connection connection) throws SQLException 
         {
+            this.uid = genrateUid(userName);
             this.pgpKey = pgpKey;
             if(userName.equals(adminUser))//cas particulier ou l'administrateur (root) se connecte
             {
@@ -296,32 +311,13 @@ public class UserCacheImpl implements UserCache{
             }
             if (fromBase && right != null)
             {
-                try 
-                {
-                    UserRight userRight = new UserRight(this.user.getUser(), chan, command, right ? "true" : "false", connection);
-                    userRight.persist(connection);
-                } 
-                catch (SQLException ex) 
-                {
-                    Logger.getLogger(UserCacheImpl.class.getName()).log(Level.SEVERE, null, ex);
+                if(!updateRight(chan, command, right, connection))
                     return false;
-                }
             }
             else if(fromBase && right == null)
             {
-                PreparedStatement preparedStatement;
-                try 
-                {
-                    UserRight userRight = new UserRight(this.user.getUser(), chan, command, right ? "true" : "false", connection);
-                    preparedStatement = connection.prepareStatement("DELETE FROM user_right WHERE command_id = ?, chan_id = ? user_id = ?");
-                    preparedStatement.setInt(1, userRight.getCommandId());
-                    preparedStatement.setInt(2, userRight.getChanId());
-                    preparedStatement.setInt(3, userRight.getUserId());
-                    preparedStatement.executeUpdate();
-                } catch (SQLException ex) {
-                    Logger.getLogger(UserCacheImpl.class.getName()).log(Level.SEVERE, null, ex);
+                if(!deleteRight(chan, command, right, connection))
                     return false;
-                }
             }
             if(right != null)
             {
@@ -330,6 +326,64 @@ public class UserCacheImpl implements UserCache{
             else
             {
                 this.rightMap.get(command).remove(chan);
+            }
+            return true;
+        }
+        /**
+         * genere une chaine aléatoire unique par utilisateur
+         * @param userName
+         * @return 
+         */
+        public String genrateUid(String userName) 
+        {
+            SecureRandom random = new SecureRandom();
+            return userName+"-"+ new BigInteger(130, random).toString(32);
+        }
+        
+        /**
+         * enregistre tour l'arbre des droits en base
+         * @param connection 
+         */
+        public void registerRights(Connection connection) 
+        {
+            for(String command : rightMap.keySet())
+            {
+                for(String chan : rightMap.get(command).keySet())
+                {
+                    updateRight(chan, command, rightMap.get(command).get(chan).toLowerCase().equals("true"), connection);
+                }
+            }
+        }
+        
+        private boolean updateRight(String chan, String command, Boolean right, Connection connection)
+        {
+            try 
+            {
+                UserRight userRight = new UserRight(this.user.getUser(), chan, command, right ? "true" : "false", connection);
+                userRight.persist(connection);
+            } 
+            catch (SQLException ex) 
+            {
+                Logger.getLogger(UserCacheImpl.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+            return true;
+        }
+        
+        private boolean deleteRight(String chan, String command, Boolean right, Connection connection)
+        {
+            PreparedStatement preparedStatement;
+            try 
+            {
+                UserRight userRight = new UserRight(this.user.getUser(), chan, command, right ? "true" : "false", connection);
+                preparedStatement = connection.prepareStatement("DELETE FROM user_right WHERE command_id = ?, chan_id = ? user_id = ?");
+                preparedStatement.setInt(1, userRight.getCommandId());
+                preparedStatement.setInt(2, userRight.getChanId());
+                preparedStatement.setInt(3, userRight.getUserId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                Logger.getLogger(UserCacheImpl.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
             }
             return true;
         }
@@ -366,6 +420,10 @@ public class UserCacheImpl implements UserCache{
         public boolean getAdmin()
         {
             return admin;
+        }
+
+        public String getUid() {
+            return uid;
         }
     }
 }

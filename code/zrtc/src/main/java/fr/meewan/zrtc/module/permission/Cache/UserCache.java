@@ -107,4 +107,11 @@ public interface UserCache
      * @return 
      */
     public boolean isConnected(String user);
+    
+    /**
+     * Méthode retournant l'identifiant unique de l'utilisateur sur le réseau
+     * @param user
+     * @return 
+     */
+    public String getUid(String user);
 }
