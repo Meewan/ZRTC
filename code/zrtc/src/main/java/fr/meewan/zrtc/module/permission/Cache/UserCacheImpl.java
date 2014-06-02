@@ -229,7 +229,7 @@ public class UserCacheImpl implements UserCache{
             
             if (fromBase)// on change le profil de droits
             {
-                preparedStatement = connection.prepareStatement("SELECT lrc.command_label, c.chan, ur.right FROM user_right AS ur, chan AS c, user AS user, list_ref_command as lrc WHERE u.user = ? AND u.user_id=ur.user_id AND c.chan_id=ur.chan_id AND lrc.command_id=ur.command_id");
+                preparedStatement = connection.prepareStatement("SELECT lrc.command_label, c.chan, ur.right FROM user_right AS ur, chan AS c, user AS u, list_ref_command as lrc WHERE u.user = ? AND u.user_id=ur.user_id AND c.chan_id=ur.chan_id AND lrc.command_id=ur.command_id");
                 preparedStatement.setString(1, userName);
                 rs = preparedStatement.executeQuery();
                 rightMap = new ConcurrentHashMap<>();

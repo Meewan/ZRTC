@@ -33,7 +33,7 @@ public interface ChanCache {
      * @param connection une connection a la bdd en lecture
      * @return 
      */
-    public Boolean setChanPermission(String chan, String command,String right, Connection connection);
+    public Boolean setChanPermission(String chan, String command,Boolean right, Connection connection);
     
     /**
      * méthode enregistrant la connection d'un utilisateur a un chan. et 
@@ -50,16 +50,7 @@ public interface ChanCache {
      * @return 
      */
     public List<String> getUsersOnChan(String chan);
-    
-    /**
-     * Méthode changeant le droit (right) d'une commande sur le chan (chan) 
-     * passé en argument et persiste cette donnée.
-     * @param command
-     * @param chan
-     * @param connection une connection a la bdd en écriture
-     * @return truee si la commande a été modifié, false sinon
-     */
-    public Boolean setChanCommand(String command, String chan, Connection connection);
+
     
     /**
      * Méthode créant un nouveau chan dans la bdd

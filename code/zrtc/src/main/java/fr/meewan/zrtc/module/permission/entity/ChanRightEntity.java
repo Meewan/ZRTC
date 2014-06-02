@@ -39,7 +39,11 @@ public class ChanRightEntity implements Entity
         this.right = right;
     }
 
-    
+    public ChanRightEntity(String chan, String command, String right, Connection connection) throws SQLException
+    {
+        this(chan, command, connection);
+        this.right = right;
+    }
 
     public ChanRightEntity(String chan, String command, Connection connection) throws SQLException 
     {
@@ -72,7 +76,7 @@ public class ChanRightEntity implements Entity
             preparedStatement.setString(1, right);
         }
         else
-        {
+        {  
             preparedStatement = connection.prepareStatement("INSERT INTO chan_right ( chan_id, comman_id, right) VALUES (4 ?, ?, ?)");
             preparedStatement.setInt(1, chanId);
             preparedStatement.setInt(2, commandId);
