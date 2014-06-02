@@ -32,6 +32,9 @@ public class PermissionConfiguration {
     private final String sqlAdress;
     private final int sqlPort;
     
+    private final String adminUser;
+    private final String adminPassword;
+    
     private final Map<String, String> commands;
     
     public PermissionConfiguration(String path) throws IOException
@@ -50,6 +53,10 @@ public class PermissionConfiguration {
         sqlUser = sql.get("sqluser");
         sqlPassword = sql.get("sqlpassword");
         sqlAdress = sql.get("sqladress");
+        
+        Profile.Section networkAdmin = config.get("networkadmin");
+        adminUser = networkAdmin.get("adminuser");
+        adminPassword = networkAdmin.get("adminpassword");
         
         Profile.Section command = config.get("command");
         commands = new HashMap<>();
@@ -115,6 +122,14 @@ public class PermissionConfiguration {
 
     public Map<String, String> getCommands() {
         return commands;
+    }
+
+    public String getAdminUser() {
+        return adminUser;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
     }
     
 }
