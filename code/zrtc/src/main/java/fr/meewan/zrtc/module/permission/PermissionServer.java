@@ -13,6 +13,7 @@ import fr.meewan.zrtc.module.permission.Cache.UserCache;
 import fr.meewan.zrtc.module.permission.Cache.UserCacheImpl;
 import fr.meewan.zrtc.module.permission.business.ListRefCommand;
 import fr.meewan.zrtc.network.Proxy;
+import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import org.zeromq.ZMQ;
 public class PermissionServer extends Thread
 {
     private final String INTERNAl_COM_ADRESS = "inproc://internam_permission_module_communication";
+    private final String CONFIG_PATH = "config" + File.separator + "permission.ini";
     private PermissionConfiguration configuration;
     private Map<String, String> comConfiguration; 
     private final UserCache userCache;
@@ -47,7 +49,7 @@ public class PermissionServer extends Thread
         defaultRightMap = new HashMap<>();
         try 
         {
-            configuration = new PermissionConfiguration(null);
+            configuration = new PermissionConfiguration(CONFIG_PATH);
         } 
         catch (IOException ex) 
         {
@@ -136,9 +138,14 @@ public class PermissionServer extends Thread
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection("jdbc:mysql:" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() , configuration.getSqlUser(), configuration.getSqlPassword());
         } 
-        catch (Exception e) 
+        catch (ClassNotFoundException e) 
         {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "toto", e);
+            return ;
+        }
+        catch (SQLException e)
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "tata", e);
             return ;
         }
         Statement statement = null;

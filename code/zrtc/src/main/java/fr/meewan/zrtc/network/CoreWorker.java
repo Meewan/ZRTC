@@ -36,7 +36,9 @@ public class CoreWorker extends Thread
         this.context = context;
         
     }
-    
+    /**
+     * gere les cycles de vie dans le réseau
+     */
     @Override
     public void run()
     {

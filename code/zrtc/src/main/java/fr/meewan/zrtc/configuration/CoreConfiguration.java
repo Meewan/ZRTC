@@ -36,7 +36,6 @@ public class CoreConfiguration extends Configuration
         Ini config = getIni(configFile);
         Section mainSection = config.get("main");
         this.privateListeningPort  = Integer.parseInt(mainSection.get("privateListeningPort"));
-        this.publicListeningPort   = Integer.parseInt(mainSection.get("publicListeningPort"));
         this.configListeningPort   = Integer.parseInt(mainSection.get("configListeningPort"));
         this.workers               = Integer.parseInt(mainSection.get("workers"));
 
@@ -71,7 +70,7 @@ public class CoreConfiguration extends Configuration
         return configListeningPort;
     }
 
-    public int getPrivateListeningPort() {
+    public int getPrivateLiseningPort() {
         return privateListeningPort;
     }
 
@@ -85,10 +84,6 @@ public class CoreConfiguration extends Configuration
 
     public String getConfigurationFilePath() {
         return configurationFilePath;
-    }
-
-    public int getPublicListeningPort() {
-        return publicListeningPort;
     }
 
     public int getWorkers() {
