@@ -11,7 +11,7 @@ PING// reponse relance de la boucle de retour serveur
 liset des commandes clients
 user#command#arg0#arg1...#[pgp signature]
 
-CONNECT#[pseudo]#[public key]//annonce de demande de connexion a un serveur
+CONNECT#[public key]//annonce de demande de connexion a un serveur
 MESSAGE#[cible]#[message]//message privé du serv
 REGISTER#[password]//enregistremnt d'un compte
 IDENTIFY#[password]// login sur le réseau.
