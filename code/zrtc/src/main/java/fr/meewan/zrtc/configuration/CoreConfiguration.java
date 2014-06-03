@@ -23,10 +23,8 @@ public class CoreConfiguration extends Configuration
     protected int privateListeningPort;
     protected int configListeningPort;
     protected int workers;
-    protected String publicKey;
     protected Map<String,ModuleCoreConfiguration> moduleList;
     protected Map<String, List<String>> commands;
-    protected String privateKey;
     
     public CoreConfiguration(String configFile) throws IOException
     {
@@ -41,10 +39,7 @@ public class CoreConfiguration extends Configuration
         this.publicListeningPort   = Integer.parseInt(mainSection.get("publicListeningPort"));
         this.configListeningPort   = Integer.parseInt(mainSection.get("configListeningPort"));
         this.workers               = Integer.parseInt(mainSection.get("workers"));
-        
-        Section cryptoSection = config.get("cryptography");
-        this.publicKey  = this.parseKey(cryptoSection.get("publicKey"));
-        this.privateKey = this.parseKey(cryptoSection.get("privateKey"));
+
         
         Section modules = config.get("modules");
         this.moduleList = new HashMap<>();
@@ -88,16 +83,8 @@ public class CoreConfiguration extends Configuration
         return commands;
     }
 
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
     public String getConfigurationFilePath() {
         return configurationFilePath;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
     }
 
     public int getPublicListeningPort() {
