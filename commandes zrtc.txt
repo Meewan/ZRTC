@@ -1,7 +1,7 @@
 ﻿Liste des commandes server
 syntaxe : COMMAND#ARG0#ARG1....
 
-CONNECT#[user uid] //annonce de la clef publique du server
+CONNECT#[user uid] //annonce de la clef uid a utiliser par le client
 MODE#[source]#[droits]//information du client sur un changement de droits
 MESSAGE#[source]#[message]//ouverture d'un canal privé via le serveur
 DEFAULT#[errcode]//réponse par defaut ou erreur.
@@ -23,7 +23,7 @@ DEFAULT#[errcode]//réponse par defaut ou erreur.
 QUIT//se déconnecte du reseau
 
 
-MODE[chan]#[cible]#[droits]//demande de modifications de droits
+MODE#[type]#[arg1]#[arg2]#[commande]#[droit]//demande de modifications de droits [type] est soit "user" soit "chan" si le type est "user" et que ça concerne un droit sur un chan alors le "user" concerné  est passé en arg2 et le "chan" est passé en arg1 sinon le arg2 n'existe pas et la cible est en ar1. droitr peut prendre les valeur "true", "false" ou "unset"
 JOIN#[cible]//demande de connexion au chan.
 SAY#[cible]#[message] //envois [message] sur le canal [cible]
 PART#[cible]// se deconnecte de cible
