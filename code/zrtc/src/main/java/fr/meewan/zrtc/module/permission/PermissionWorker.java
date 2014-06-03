@@ -141,7 +141,7 @@ class PermissionWorker implements Runnable
             }
             Connection connection;
             try {
-                connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+                connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
             
             //on vérifie les droits particuliers du chan
             right = permissionServer.getChanCache().getChanPermission(chan, command, connection);
@@ -244,7 +244,7 @@ class PermissionWorker implements Runnable
         Connection connection;
         try 
         {
-            connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
         } 
         catch (SQLException ex) 
         {
@@ -282,7 +282,7 @@ class PermissionWorker implements Runnable
         Connection connection;
         try
         {
-            connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
         }
         catch (SQLException ex) 
         {
@@ -325,7 +325,7 @@ class PermissionWorker implements Runnable
         Connection connection;
         try 
         {
-            connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
         } 
         catch (SQLException ex) 
         {
@@ -382,7 +382,7 @@ class PermissionWorker implements Runnable
         Connection connection;
         try 
         {
-            connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
         } 
         catch (SQLException ex) 
         {
@@ -455,7 +455,7 @@ class PermissionWorker implements Runnable
             Connection connection;
             try 
             {
-                connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+                connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
             }
             catch (SQLException ex) 
             {
