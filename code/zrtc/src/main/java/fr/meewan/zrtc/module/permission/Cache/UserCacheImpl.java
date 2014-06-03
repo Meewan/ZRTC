@@ -15,8 +15,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -196,12 +198,51 @@ public class UserCacheImpl implements UserCache{
         return null;
     }
     
+    @Override
+    public boolean addUserTochan(String user, String chan)
+    {
+        if(cache.containsKey(user))
+        {
+            return cache.get(user).joinChan(chan);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean removeUserFromchan(String user, String chan)
+    {
+        if(cache.containsKey(user))
+        {
+            return cache.get(user).partChan(chan);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    @Override
+    public List<String> getAllChanForUser(String user)
+    {
+        if(cache.containsKey(user))
+        {
+            return cache.get(user).getChans();
+        }
+        else
+        {
+            return null;
+        }
+    }
     
     private class UserObject
     {
         private boolean fromBase = false;
         private User user;
         private Map <String, Map<String, String>> rightMap;
+        private List<String> chans;
         private final String pgpKey;
         private final String uid;
         //indique si la personne a entré son password ou non
@@ -213,6 +254,7 @@ public class UserCacheImpl implements UserCache{
         {
             this.uid = genrateUid(userName);
             this.pgpKey = pgpKey;
+            chans = new CopyOnWriteArrayList<>();
             if(userName.equals(adminUser))//cas particulier ou l'administrateur (root) se connecte
             {
                 admin = true;
@@ -388,6 +430,24 @@ public class UserCacheImpl implements UserCache{
             return true;
         }
         
+        public boolean joinChan(String chan)
+        {
+            chans.add(chan);
+            return true;
+        }
+        
+        public boolean partChan(String chan)
+        {
+            if(!chans.contains(chan))
+            {
+                return false;
+            }
+            else
+            {
+                chans.remove(chan);
+            return true;
+            }
+        }
         public String getPassword() 
         {
             return this.user.getPassowrd();
@@ -422,8 +482,14 @@ public class UserCacheImpl implements UserCache{
             return admin;
         }
 
-        public String getUid() {
+        public String getUid() 
+        {
             return uid;
         }
+
+        public List<String> getChans() {
+            return chans;
+        }
+        
     }
 }

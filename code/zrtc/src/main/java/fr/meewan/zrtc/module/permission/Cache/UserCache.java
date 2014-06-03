@@ -7,6 +7,7 @@
 package fr.meewan.zrtc.module.permission.Cache;
 
 import java.sql.Connection;
+import java.util.List;
 
 /**
  * Interface explicitant l'api pour le cache utilisateur
@@ -114,4 +115,27 @@ public interface UserCache
      * @return 
      */
     public String getUid(String user);
+    
+    /**
+     * Retire un chan de la liste des chans auquel est connecté l'utilisateur "user"
+     * @param user
+     * @param chan
+     * @return 
+     */
+    public boolean removeUserFromchan(String user, String chan);
+    
+    /**
+     * ajoute un chan de la liste des chans auquel est connecté l'utilisateur "user"
+     * @param user
+     * @param chan
+     * @return 
+     */
+    public boolean addUserTochan(String user, String chan);
+    
+    /**
+     * retourne la liste des chans auxquels est enregistré l'utilisateur
+     * @param user
+     * @return 
+     */
+    public List<String> getAllChanForUser(String user);
 }

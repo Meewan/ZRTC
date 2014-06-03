@@ -36,13 +36,13 @@ public interface ChanCache {
     public Boolean setChanPermission(String chan, String command,Boolean right, Connection connection);
     
     /**
-     * méthode enregistrant la connection d'un utilisateur a un chan. et 
-     * retournant true si tout va bien et false sinon
+     * méthode enregistrant la connection d'un utilisateur a un chan et le 
+     * créant si besoin. et retournant true si tout va bien et false sinon
      * @param user
      * @param chan
      * @return 
      */
-    public Boolean addUserToChan(String user, String chan);
+    public Boolean addUserToChan(String user, String chan, Connection connection);
     
     /**
      * Méthode retournant la liste des utilisateurs connecté a un chan.

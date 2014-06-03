@@ -63,13 +63,17 @@ public class ChanCacheImpl implements ChanCache
     }
 
     @Override
-    public Boolean addUserToChan(String user, String chan) 
+    public Boolean addUserToChan(String user, String chan, Connection connection) 
     {
         if(cache.containsKey(chan))
         {
             return cache.get(chan).addUser(user);
         }
-        return false;
+        else
+        {
+            this.createNewChan(chan, connection);
+            return cache.get(chan).addUser(user);
+        }
     }
 
     @Override
@@ -142,7 +146,7 @@ public class ChanCacheImpl implements ChanCache
                 this.fromBase = true;
                 this.chanId = rs.getInt("chan_id");
             }
-            if(chanId > 0)
+            if(fromBase)
             {
                 preparedStatement = connection.prepareStatement("SELECT cr.right, lrf.command_label FROM chan_right AS cr, list_ref_command AS lrf WHERE cr.chan_id = ? AND lrf.command_id = ur.command_id ");
                 preparedStatement.setInt(1, this.chanId);

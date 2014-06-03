@@ -8,6 +8,7 @@ package fr.meewan.zrtc.module;
 
 import fr.meewan.zrtc.module.command.CommandModule;
 import fr.meewan.zrtc.module.output.OutputModule;
+import fr.meewan.zrtc.module.permission.PermissionModule;
 
 /**
  *
@@ -25,6 +26,8 @@ public class ModuleFactory
             case "output":
             	return new OutputModule();
                 
+            case "permission":
+                return new PermissionModule();
             default:
                 return null;
         }

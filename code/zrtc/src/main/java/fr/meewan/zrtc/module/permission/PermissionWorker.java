@@ -7,10 +7,12 @@
 package fr.meewan.zrtc.module.permission;
 
 import flexjson.JSONDeserializer;
+import flexjson.JSONSerializer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +48,8 @@ class PermissionWorker implements Runnable
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize(rawMessage);
             socket.send("ok", 0);
             
+            //les deux tratements possibles
+            //le message est validé et on execute els traitements
             if(message.get("correctsignature") != null && message.get("correctsignature").toLowerCase().equals("true") && 
                     message.get("authorized") != null && message.get("authorized").toLowerCase().equals("true"))
             {
@@ -63,6 +67,13 @@ class PermissionWorker implements Runnable
                     message.put("pgpkey", message.get("arg0"));
                 }
             }
+            //on passe le message au suivant
+            message.put("state", ((Integer)(Integer.parseInt(message.get("state") +1))).toString());
+            if(Integer.parseInt(message.get("state")) <= Integer.parseInt(message.get("lifecyclestates")))
+            {
+               sendInNetwork(message);
+            }
+            
         }
     }
     
@@ -269,9 +280,12 @@ class PermissionWorker implements Runnable
             return;
         }
         Connection connection;
-        try {
+        try
+        {
             connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) 
+        {
             Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
@@ -302,14 +316,19 @@ class PermissionWorker implements Runnable
         try 
         {
             Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException ex) {
+        } 
+        catch (ClassNotFoundException ex) 
+        {
             Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
         Connection connection;
-        try {
+        try 
+        {
             connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        } catch (SQLException ex) {
+        } 
+        catch (SQLException ex) 
+        {
             Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
@@ -327,19 +346,194 @@ class PermissionWorker implements Runnable
         }
     }
 
-    private void quit(Map<String, String> message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void quit(Map<String, String> message) 
+    {
+        String user = message.get("user");
+        
+        //recuperation des chans ou l'utilisateur était inscrit
+        List<String> chans = permissionServer.getUserCache().getAllChanForUser(user);
+        //destruction de la session utilisateur
+        permissionServer.getUserCache().UnconnectUser(user);
+        //deconnection de tout les chans auxquels était connecté l'utilisateur
+        for(String chan : chans)
+        {
+            permissionServer.getChanCache().revoveUserFromChan(user, chan);
+        }
     }
 
-    private void mode(Map<String, String> message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void mode(Map<String, String> message) 
+    {
+        String type = message.get("arg0");
+        int argc = Integer.parseInt(message.get("argc"));
+        if (type == null || argc < 4)
+        {
+            message.put("authorized", "false");
+            return;
+        }
+        try 
+        {
+            Class.forName("com.mysql.jdbc.Driver");
+        } 
+        catch (ClassNotFoundException ex) 
+        {
+            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        Connection connection;
+        try 
+        {
+            connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+        } 
+        catch (SQLException ex) 
+        {
+            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        if(type.toLowerCase().equals("user"))
+        {
+            //cas ou on change les droits d'un utilisateur sur un chan
+            if (argc == 5)
+            {
+                String user = message.get("arg2");
+                String command = message.get("arg3");
+                String rightString = message.get("arg4");
+                Boolean right = internalStringToBoolean(rightString);
+                String chan = message.get("arg1");
+                if(!permissionServer.getUserCache().setUserCommand(user, chan, command, right, connection))
+                {
+                    message.put("authorized", "false");
+                }
+            }
+            else//cas ou c'est une commande générique
+            {
+                String user = message.get("arg1");
+                String command = message.get("arg2");
+                Boolean right = internalStringToBoolean(message.get("arg3"));
+                if(!permissionServer.getUserCache().setUserCommand(user, command, right, connection))
+                {
+                    message.put("authorized", "false");
+                }
+            }
+        }
+        else if(type.toLowerCase().equals("chan"))//changer les droits d'un chan
+        {
+            String chan = message.get("arg1");
+            String command = message.get("arg2");
+            Boolean right = internalStringToBoolean(message.get("arg3"));
+            if(!permissionServer.getChanCache().setChanPermission(chan, command, right, connection))
+            {
+                message.put("authorized", "false");
+            }
+        }
+        
+        try 
+        {
+            connection.close();
+        } 
+        catch (SQLException ex) 
+        {
+            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    private void joinChan(Map<String, String> message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void joinChan(Map<String, String> message) 
+    {
+       String user = message.get("user");
+       String chan = message.get("arg0");
+       
+       if(permissionServer.getUserCache().addUserTochan(user, chan))
+       {
+            try 
+            {
+                Class.forName("com.mysql.jdbc.Driver");
+            }
+            catch (ClassNotFoundException ex) 
+            {
+                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
+            Connection connection;
+            try 
+            {
+                connection = DriverManager.getConnection("jdbc:mysql:" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
+            }
+            catch (SQLException ex) 
+            {
+                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+                return;
+            }
+            
+            if(!permissionServer.getChanCache().addUserToChan(user, chan, connection))
+            {
+                message.put("authorized", "false");
+            }
+            
+            try 
+            {
+                connection.close();
+            } 
+            catch (SQLException ex) 
+            {
+                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
+            }
+       }
+       else
+       {
+           message.put("authorized", "false");
+       }
     }
 
-    private void part(Map<String, String> message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void part(Map<String, String> message) 
+    {
+        String user = message.get("user");
+        String chan = message.get("arg0");
+        if(permissionServer.getUserCache().removeUserFromchan(user, chan))
+        {
+            if(!permissionServer.getChanCache().revoveUserFromChan(user, chan))
+            {
+                message.put("authorized", "false");
+            }
+        }
+        else
+        {
+            message.put("authorized", "false");
+        }
+    }
+    
+    /**
+     * méthode convertissant une string entré en argument de "mode" en boolean 
+     * utilisable avec les spec de l'interface de cache
+     * @param right
+     * @return 
+     */
+    private Boolean internalStringToBoolean(String right)
+    {
+        if (right == null)
+        {
+            return false;
+        }
+        if(right.toLowerCase().equals("true"))
+        {
+            return true;
+        }
+        if(right.toLowerCase().equals("false"))
+        {
+            return false;
+        }
+        return null;
+    }
+    /**
+     * Méthode faisant suivre le message au suivant sur dans le cycle de vie
+     * @param message 
+     */
+    private void sendInNetwork(Map<String, String> message)
+    {
+         ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
+        //on se connecte au au suivant pour qu'il complete l'objet
+        speaker.connect(permissionServer.getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
+        //on lui passe le message
+        speaker.send(new JSONSerializer().serialize(message),0);
+        //on ferme la connexion (on a pas besoin de sa réponse)
+        speaker.close();
     }
 }
