@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  *
  * @author Meewan
  */
-public class CommandTimeOutWorker implements Runnable
+public class CommandTimeOutWorker extends Thread
 {
     final private CommandServer commandServer;
     private Set<String> oldWaitingCommandList;

@@ -38,7 +38,7 @@ public class CommandInternalWorker extends Thread
     {
         //initialisation du réseau
         ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-        socket.connect (CommandServer.INTERNAL_COM_ADRESS);
+        socket.connect (commandServer.INTERNAL_COM_ADRESS);
         while(! this.stop)
         {
             //écoute d'une demande

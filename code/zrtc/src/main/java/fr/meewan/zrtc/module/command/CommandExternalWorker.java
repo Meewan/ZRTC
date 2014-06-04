@@ -44,7 +44,7 @@ public class CommandExternalWorker extends Thread
     {
         //initialisation du réseau
         ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-        socket.connect (CommandServer.EXTERNAL_COM_ADRESS);
+        socket.connect (commandServer.EXTERNAL_COM_ADRESS);
         //écoute d'une demande
         rawCommand = socket.recvStr (0);
         //des la reception d'une demande on créé un nouveau worker pour écouter le réseau
