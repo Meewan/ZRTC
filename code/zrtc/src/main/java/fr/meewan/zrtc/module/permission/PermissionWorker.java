@@ -23,7 +23,7 @@ import org.zeromq.ZMQ;
  *
  * @author Meewan
  */
-class PermissionWorker implements Runnable
+class PermissionWorker extends Thread
 {
     private PermissionServer permissionServer;
     private boolean stop = false;

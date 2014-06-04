@@ -67,6 +67,7 @@ public class PermissionServer extends Thread
     @Override
     public void run()
     {
+        logger.log(Level.INFO, "------------------- Lancement du module de commande commencé");
         context = new ZContext();
         logger.log(Level.INFO, "Chargement des données du réseau");
         loadNetworkConfiguration();
@@ -77,10 +78,12 @@ public class PermissionServer extends Thread
         
         for (int i = 0; i < configuration.getMaxWorkers(); i++)
         {
-            workers.add(new PermissionWorker(this, context));
-            workers.get(i).run();
+            PermissionWorker worker = new PermissionWorker(this, context);
+            worker.start();
+            workers.add(worker);
         }
         //on garde en vie
+        logger.log(Level.INFO, "------------------- Lancement du module de permission termine");
         while (!stop)
         {
             synchronized(this)
@@ -166,6 +169,7 @@ public class PermissionServer extends Thread
             return;
         }
         List<ListRefCommand> commandList = new ArrayList<>();
+        logger.log(Level.INFO, "creation de la liste des commandes en base");
         try 
         {
             while(rs.next())
@@ -193,7 +197,7 @@ public class PermissionServer extends Thread
                         {
                             dbCommand.persist(connection);
                         } 
-                        catch (Exception ex) 
+                        catch (SQLException ex) 
                         {
                             Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
                             return;
@@ -205,19 +209,20 @@ public class PermissionServer extends Thread
             }
             if(!inbase)// si la commande est dans le fichier de conf et pas en base, on l'ajoute
             {
+                logger.log(Level.INFO, "{0}n''est pas en base, on l''ajoute", command);
                 ListRefCommand newCommand = new ListRefCommand(command, configuration.getCommands().get(command));
                 try 
                 {
                     newCommand.persist(connection);
                 } 
-                catch (Exception ex) 
+                catch (SQLException ex) 
                 {
                     Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
                     return;
                 }
             }
         }
-        
+        logger.log(Level.INFO, "fin de la verification des commandes en base");
         try 
         {
             connection.close();
@@ -226,6 +231,7 @@ public class PermissionServer extends Thread
         {
             Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        logger.log(Level.INFO, "fin de la verification des commandes en base");
     }
 
     public void setStop(boolean stop) {

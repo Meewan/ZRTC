@@ -38,10 +38,17 @@ public class CommandTimeOutWorker extends Thread
             Set<String> waytingCommandList = commandServer.getWaitingCommands().keySet();
             List<String> zombies = (List<String>) Misc.compareSet(oldWaitingCommandList, waytingCommandList);
             oldWaitingCommandList = waytingCommandList;
-            try {
-                this.wait(30000);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CommandTimeOutWorker.class.getName()).log(Level.SEVERE, null, ex);
+            synchronized(this)
+            {
+                    
+                try
+                {
+                    this.wait(30000);
+                } 
+                catch (InterruptedException ex) 
+                {
+                    Logger.getLogger(CommandTimeOutWorker.class.getName()).log(Level.SEVERE, "echec de wait", ex);
+                }
             }
         }
     }

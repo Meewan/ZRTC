@@ -73,7 +73,7 @@ public class OutputServer extends Thread
         internalInput.bind("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort());
         
         stop = false;
-
+        
         logger.log(Level.INFO, "démarrage des fonctionnalités (output)");
         while(!stop)
         {
