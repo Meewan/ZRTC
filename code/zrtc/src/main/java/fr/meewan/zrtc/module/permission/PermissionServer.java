@@ -62,19 +62,16 @@ public class PermissionServer extends Thread
         }
         try 
         {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() + "/zrtc?autoreconnect=true" , configuration.getSqlUser(), configuration.getSqlPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() + "/" + configuration.getSqlDb() + "?autoreconnect=true" , configuration.getSqlUser(), configuration.getSqlPassword());
         } 
         catch (SQLException e)
         {
             Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "SQLException", e);
         }
-        catch (ClassNotFoundException ex) 
-        {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "Driver not found", ex);
-        }
+       
         userCache = new UserCacheImpl(configuration.getAdminUser(), configuration.getAdminPassword(), connection);
-        chanCache = new ChanCacheImpl(connection);   
+        chanCache = new ChanCacheImpl(connection);  
+       
         workers = new ArrayList<>();
     }
     
