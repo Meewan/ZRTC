@@ -6,7 +6,6 @@
 
 package fr.meewan.zrtc.module.permission.Cache;
 
-import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -20,20 +19,18 @@ public interface ChanCache {
      * aucune donnée a ce propos.
      * @param chan
      * @param command
-     * @param connection une connection a la bdd en lecture
      * @return 
      */
-    public Boolean getChanPermission(String chan, String command, Connection connection);
+    public Boolean getChanPermission(String chan, String command);
     /**
      * Méthode insérant ou modifiant une permission pour la chan, si la permission
      * est "null" la ligne ets suprimmé
      * @param chan
      * @param command
      * @param right
-     * @param connection une connection a la bdd en lecture
      * @return 
      */
-    public Boolean setChanPermission(String chan, String command,Boolean right, Connection connection);
+    public Boolean setChanPermission(String chan, String command,Boolean right);
     
     /**
      * méthode enregistrant la connection d'un utilisateur a un chan et le 
@@ -42,7 +39,7 @@ public interface ChanCache {
      * @param chan
      * @return 
      */
-    public Boolean addUserToChan(String user, String chan, Connection connection);
+    public Boolean addUserToChan(String user, String chan);
     
     /**
      * Méthode retournant la liste des utilisateurs connecté a un chan.
@@ -55,10 +52,9 @@ public interface ChanCache {
     /**
      * Méthode créant un nouveau chan dans la bdd
      * @param chan le nom du chan a créer
-     * @param connection
      * @return true si le chan a été créé, false sinon
      */
-    public Boolean createNewChan(String chan, Connection connection);
+    public Boolean createNewChan(String chan);
     
     /**
      * Méthode retirant un utilisateur(user) du salon  (chan)

@@ -6,7 +6,6 @@
 
 package fr.meewan.zrtc.module.permission.Cache;
 
-import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -56,7 +55,7 @@ public interface UserCache
      * @param pgpKey la clef pgp que soummet cet utilisateur
      * @return true si cl'utilisateur a été connecté et false sinon
      */
-    public Boolean ConnectUser(String user, String pgpKey, Connection connection);
+    public Boolean ConnectUser(String user, String pgpKey);
     
     /**
      * Déconnecte un utilisateur 
@@ -71,7 +70,7 @@ public interface UserCache
      * @param password son password
      * @return 
      */
-    public Boolean registerUser(String user, String password, Connection connection);
+    public Boolean registerUser(String user, String password);
     
     /**
      * Méthode modifiant les droits d'un utilisateur et les persistant si 
@@ -81,7 +80,7 @@ public interface UserCache
      * @param right les droits a appliquer (null pour revenir aux droits par defaut)
      * @return true si l'opération a réussit et false sinon
      */
-    public Boolean setUserCommand(String user, String command, Boolean right, Connection connection);
+    public Boolean setUserCommand(String user, String command, Boolean right);
     
     /**
      * Méthode modifiant les droits d'un utilisateur et les persistant si 
@@ -92,7 +91,7 @@ public interface UserCache
      * @param right les droits a appliquer (null pour revenir aux droits par defaut)
      * @return true si l'opération a réussit et false sinon
      */
-    public Boolean setUserCommand(String user, String command, String chan,Boolean right, Connection connection);
+    public Boolean setUserCommand(String user, String command, String chan,Boolean right);
     
     /**
      * Change le nom d'un utilisateur, il perd ses droits non présent dans le cache
@@ -100,7 +99,7 @@ public interface UserCache
      * @param newName nouveau nom
      * @return true si tout c'est bnin passé et false sinon
      */
-    public Boolean changeUserName(String oldName,String newName, Connection connection);
+    public Boolean changeUserName(String oldName,String newName);
     
     /**
      * Méthode retournant true si user est connecté et false sinon

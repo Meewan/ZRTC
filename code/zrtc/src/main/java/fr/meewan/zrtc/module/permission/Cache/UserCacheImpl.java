@@ -31,12 +31,14 @@ public class UserCacheImpl implements UserCache{
     private Map<String, UserObject> cache;
     private final String adminUser;
     private final String adminPassword;
+    private final Connection connection;
     
-    public UserCacheImpl(String adminUser, String adminPassword)
+    public UserCacheImpl(String adminUser, String adminPassword, Connection connection)
     {
         cache = new ConcurrentHashMap<>();
         this.adminPassword = adminPassword;
         this.adminUser = adminUser;
+        this.connection = connection;
     }
 
     
@@ -79,7 +81,7 @@ public class UserCacheImpl implements UserCache{
     }
 
     @Override
-    public Boolean ConnectUser(String user, String pgpKey, Connection connection) 
+    public Boolean ConnectUser(String user, String pgpKey) 
     {
         if(!cache.containsKey(user) && user.length() > 0)
         {
@@ -115,7 +117,7 @@ public class UserCacheImpl implements UserCache{
     }
 
     @Override
-    public Boolean registerUser(String user, String password, Connection connection) 
+    public Boolean registerUser(String user, String password) 
     {
         if(user.equals(adminUser))
         {
@@ -143,13 +145,13 @@ public class UserCacheImpl implements UserCache{
     }
 
     @Override
-    public Boolean setUserCommand(String user, String command, Boolean right, Connection connection) 
+    public Boolean setUserCommand(String user, String command, Boolean right) 
     {
-        return setUserCommand(user, command, "", right, connection);
+        return setUserCommand(user, command, "", right);
     }
 
     @Override
-    public Boolean setUserCommand(String user, String command, String chan, Boolean right, Connection connection) 
+    public Boolean setUserCommand(String user, String command, String chan, Boolean right) 
     {
         if(cache.containsKey(user))
             return cache.get(user).setCommandRight(command, chan, right, connection);
@@ -158,7 +160,7 @@ public class UserCacheImpl implements UserCache{
     }
 
     @Override
-    public Boolean changeUserName(String oldName, String newName, Connection connection) 
+    public Boolean changeUserName(String oldName, String newName) 
     {
         if(cache.containsKey(oldName))
         {

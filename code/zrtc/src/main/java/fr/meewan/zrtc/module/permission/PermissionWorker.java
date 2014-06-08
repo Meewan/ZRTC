@@ -8,14 +8,9 @@ package fr.meewan.zrtc.module.permission;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
@@ -132,24 +127,8 @@ class PermissionWorker extends Thread
             {
                 return right;
             }
-            try 
-            {
-                Class.forName("com.mysql.jdbc.Driver");
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
-            Connection connection;
-            try {
-                connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-            
             //on vérifie les droits particuliers du chan
-            right = permissionServer.getChanCache().getChanPermission(chan, command, connection);
-            connection.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-                return false;
-            }
+            right = permissionServer.getChanCache().getChanPermission(chan, command);
             if(right != null)
             {
                 return right;
@@ -231,27 +210,8 @@ class PermissionWorker extends Thread
     }
 
     private void connect(Map<String, String> message) 
-    {
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-        } 
-        catch (ClassNotFoundException ex)
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        Connection connection;
-        try 
-        {
-            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        if(permissionServer.getUserCache().ConnectUser(message.get("user"), message.get("pgpkey"), connection))
+    { 
+        if(permissionServer.getUserCache().ConnectUser(message.get("user"), message.get("pgpkey")))
         {
             message.put("uid", permissionServer.getUserCache().getUid(message.get("user")));
         }
@@ -259,47 +219,13 @@ class PermissionWorker extends Thread
         {
             message.put("authorized", "false");
         }
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
     }
 
     private void register(Map<String, String> message) 
     {
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        Connection connection;
-        try
-        {
-            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        }
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        if(!permissionServer.getUserCache().registerUser(message.get("user"), message.get("arg0"), connection))
+        if(!permissionServer.getUserCache().registerUser(message.get("user"), message.get("arg0")))
         {
             message.put("authorized", "false");
-        }
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -312,37 +238,10 @@ class PermissionWorker extends Thread
     }
 
     private void nick(Map<String, String> message) 
-    {
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-        } 
-        catch (ClassNotFoundException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        Connection connection;
-        try 
-        {
-            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        if(! permissionServer.getUserCache().changeUserName(message.get("user"), message.get("arg0"), connection))
+    { 
+        if(! permissionServer.getUserCache().changeUserName(message.get("user"), message.get("arg0")))
         {
             message.put("authorized", "false");
-        }
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -370,25 +269,6 @@ class PermissionWorker extends Thread
             message.put("authorized", "false");
             return;
         }
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-        } 
-        catch (ClassNotFoundException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
-        Connection connection;
-        try 
-        {
-            connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-            return;
-        }
         if(type.toLowerCase().equals("user"))
         {
             //cas ou on change les droits d'un utilisateur sur un chan
@@ -399,7 +279,7 @@ class PermissionWorker extends Thread
                 String rightString = message.get("arg4");
                 Boolean right = internalStringToBoolean(rightString);
                 String chan = message.get("arg1");
-                if(!permissionServer.getUserCache().setUserCommand(user, chan, command, right, connection))
+                if(!permissionServer.getUserCache().setUserCommand(user, chan, command, right))
                 {
                     message.put("authorized", "false");
                 }
@@ -409,7 +289,7 @@ class PermissionWorker extends Thread
                 String user = message.get("arg1");
                 String command = message.get("arg2");
                 Boolean right = internalStringToBoolean(message.get("arg3"));
-                if(!permissionServer.getUserCache().setUserCommand(user, command, right, connection))
+                if(!permissionServer.getUserCache().setUserCommand(user, command, right))
                 {
                     message.put("authorized", "false");
                 }
@@ -420,19 +300,10 @@ class PermissionWorker extends Thread
             String chan = message.get("arg1");
             String command = message.get("arg2");
             Boolean right = internalStringToBoolean(message.get("arg3"));
-            if(!permissionServer.getChanCache().setChanPermission(chan, command, right, connection))
+            if(!permissionServer.getChanCache().setChanPermission(chan, command, right))
             {
                 message.put("authorized", "false");
             }
-        }
-        
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -443,38 +314,9 @@ class PermissionWorker extends Thread
        
        if(permissionServer.getUserCache().addUserTochan(user, chan))
        {
-            try 
-            {
-                Class.forName("com.mysql.jdbc.Driver");
-            }
-            catch (ClassNotFoundException ex) 
-            {
-                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-            Connection connection;
-            try 
-            {
-                connection = DriverManager.getConnection("jdbc:mysql://" + permissionServer.getConfiguration().getSqlAdress() + ":" + permissionServer.getConfiguration().getSqlPort() , permissionServer.getConfiguration().getSqlUser(), permissionServer.getConfiguration().getSqlPassword());
-            }
-            catch (SQLException ex) 
-            {
-                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
-                return;
-            }
-            
-            if(!permissionServer.getChanCache().addUserToChan(user, chan, connection))
+            if(!permissionServer.getChanCache().addUserToChan(user, chan))
             {
                 message.put("authorized", "false");
-            }
-            
-            try 
-            {
-                connection.close();
-            } 
-            catch (SQLException ex) 
-            {
-                Logger.getLogger(PermissionWorker.class.getName()).log(Level.SEVERE, null, ex);
             }
        }
        else

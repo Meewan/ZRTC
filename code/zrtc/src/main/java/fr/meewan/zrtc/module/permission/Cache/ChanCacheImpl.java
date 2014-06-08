@@ -24,15 +24,17 @@ import java.util.logging.Logger;
  */
 public class ChanCacheImpl implements ChanCache
 {
-    Map<String, ChanObject> cache;
+    private Map<String, ChanObject> cache;
+    private Connection connection;
     
-    public ChanCacheImpl()
+    public ChanCacheImpl(Connection connection)
     {
         cache = new ConcurrentHashMap<>();
+        this.connection = connection;
     }
 
     @Override
-    public Boolean getChanPermission(String chan, String command, Connection connection) 
+    public Boolean getChanPermission(String chan, String command) 
     {
         if(cache.containsKey(chan))
         {
@@ -45,7 +47,7 @@ public class ChanCacheImpl implements ChanCache
     }
 
     @Override
-    public Boolean setChanPermission(String chan, String command, Boolean right, Connection connection) 
+    public Boolean setChanPermission(String chan, String command, Boolean right) 
     {
         if(cache.containsKey(chan))
         {
@@ -63,7 +65,7 @@ public class ChanCacheImpl implements ChanCache
     }
 
     @Override
-    public Boolean addUserToChan(String user, String chan, Connection connection) 
+    public Boolean addUserToChan(String user, String chan) 
     {
         if(cache.containsKey(chan))
         {
@@ -71,7 +73,7 @@ public class ChanCacheImpl implements ChanCache
         }
         else
         {
-            this.createNewChan(chan, connection);
+            this.createNewChan(chan);
             return cache.get(chan).addUser(user);
         }
     }
@@ -87,7 +89,7 @@ public class ChanCacheImpl implements ChanCache
     }
 
     @Override
-    public Boolean createNewChan(String chan, Connection connection) 
+    public Boolean createNewChan(String chan) 
     {
         if(!cache.containsKey(chan))
         {

@@ -39,10 +39,11 @@ public class PermissionServer extends Thread
     private final ChanCache chanCache;
     private final Map<String, Boolean> defaultRightMap;
     private static final Logger logger = Logger.getLogger(PermissionServer.class.getName());
-    private List<PermissionWorker> workers;
+    private final List<PermissionWorker> workers;
     private boolean stop = false;
     private ZContext context;
     private Proxy proxy;
+    private Connection connection;
 
     public PermissionServer() 
     {
@@ -59,8 +60,21 @@ public class PermissionServer extends Thread
         {
             defaultRightMap.put(command, configuration.getCommands().get(command).toLowerCase().equals("true"));
         }
-        userCache = new UserCacheImpl(configuration.getAdminUser(), configuration.getAdminPassword());
-        chanCache = new ChanCacheImpl();   
+        try 
+        {
+            Class.forName("com.mysql.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() + "/zrtc?autoreconnect=true" , configuration.getSqlUser(), configuration.getSqlPassword());
+        } 
+        catch (SQLException e)
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "SQLException", e);
+        }
+        catch (ClassNotFoundException ex) 
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "Driver not found", ex);
+        }
+        userCache = new UserCacheImpl(configuration.getAdminUser(), configuration.getAdminPassword(), connection);
+        chanCache = new ChanCacheImpl(connection);   
         workers = new ArrayList<>();
     }
     
@@ -74,7 +88,7 @@ public class PermissionServer extends Thread
         logger.log(Level.INFO, "Lancement du proxy pour les workers");
         proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAl_COM_ADRESS, context);
         logger.log(Level.INFO, "verification des commandes enregistré en base");
-        checkCommandInBase();
+        checkCommandInBase(connection);
         
         for (int i = 0; i < configuration.getMaxWorkers(); i++)
         {
@@ -133,21 +147,9 @@ public class PermissionServer extends Thread
      * Méthode vérifiant les commandes qui sont en base et les ajoutant si besoin
      * @return 
      */
-    private void checkCommandInBase()
+    private void checkCommandInBase(Connection connection)
     {
-        java.sql.Connection connection = null;
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() + "/zrtc" , configuration.getSqlUser(), configuration.getSqlPassword());
-        } 
-        catch (SQLException e)
-        {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "SQLException", e);
-            return ;
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "Driver not found", ex);
-        }
+        
         Statement statement = null;
         try 
         {
@@ -221,15 +223,6 @@ public class PermissionServer extends Thread
                     return;
                 }
             }
-        }
-        logger.log(Level.INFO, "fin de la verification des commandes en base");
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         logger.log(Level.INFO, "fin de la verification des commandes en base");
     }
