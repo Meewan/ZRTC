@@ -11,3 +11,4 @@
 "correctsignature" flag (true/false) disant si le module de crypto a pu valider la signature
 "lifecyclestates" le nombre d'etapes dans el cycle de vie
 "uid" identifiant unique de l'utilisateur sur le réseau
+"pgpkey" //la clef publique de l'utilisateur
