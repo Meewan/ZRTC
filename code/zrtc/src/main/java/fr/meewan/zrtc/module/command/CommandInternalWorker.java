@@ -38,7 +38,7 @@ public class CommandInternalWorker extends Thread
     {
         //initialisation du réseau
         ZMQ.Socket socket = context.createSocket(ZMQ.REP);
-        socket.connect (CommandServer.INTERNAL_COM_ADRESS);
+        socket.connect (commandServer.INTERNAL_COM_ADRESS);
         while(! this.stop)
         {
             //écoute d'une demande
@@ -100,7 +100,7 @@ public class CommandInternalWorker extends Thread
                     break;
                 case "connect":
                 {
-                    if(!sendToClient(NetworkMessage.generatePingMessage(commandId)))
+                    if(!sendToClient(NetworkMessage.generateMessage(commandId, command, message.get("uid"))))
                     {
                         return null;
                     }
@@ -153,7 +153,7 @@ public class CommandInternalWorker extends Thread
                 {
                     if("true".equals(message.get("fromnetwork")))
                     {
-                        if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                        if(!sendToClient(message))
                         {
                             return null;
                         }
@@ -189,6 +189,26 @@ public class CommandInternalWorker extends Thread
                 }
                     break;
                 case "nick":
+                {
+                    CommandExternalWorker external = commandServer.getActiveExternalConnexions(message.get("user"));
+                    commandServer.addToActiveExternalConnexions(message.get(message.get("arg0")), external);
+                    commandServer.removeFromActiveExternalConnexions(message.get(message.get("user")));
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "quit":
+                {
+                    commandServer.removeFromActiveExternalConnexions(message.get(message.get("user")));
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
+                    {
+                        return null;
+                    }
+                }
+                    break;
+                case "part":
                 {
                     if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
                     {

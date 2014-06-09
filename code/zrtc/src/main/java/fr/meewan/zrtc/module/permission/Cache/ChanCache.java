@@ -6,7 +6,6 @@
 
 package fr.meewan.zrtc.module.permission.Cache;
 
-import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -20,24 +19,22 @@ public interface ChanCache {
      * aucune donnée a ce propos.
      * @param chan
      * @param command
-     * @param connection une connection a la bdd en lecture
      * @return 
      */
-    public Boolean getChanPermission(String chan, String command, Connection connection);
+    public Boolean getChanPermission(String chan, String command);
     /**
      * Méthode insérant ou modifiant une permission pour la chan, si la permission
      * est "null" la ligne ets suprimmé
      * @param chan
      * @param command
      * @param right
-     * @param connection une connection a la bdd en lecture
      * @return 
      */
-    public Boolean setChanPermission(String chan, String command,String right, Connection connection);
+    public Boolean setChanPermission(String chan, String command,Boolean right);
     
     /**
-     * méthode enregistrant la connection d'un utilisateur a un chan. et 
-     * retournant true si tout va bien et false sinon
+     * méthode enregistrant la connection d'un utilisateur a un chan et le 
+     * créant si besoin. et retournant true si tout va bien et false sinon
      * @param user
      * @param chan
      * @return 
@@ -50,24 +47,14 @@ public interface ChanCache {
      * @return 
      */
     public List<String> getUsersOnChan(String chan);
-    
-    /**
-     * Méthode changeant le droit (right) d'une commande sur le chan (chan) 
-     * passé en argument et persiste cette donnée.
-     * @param command
-     * @param chan
-     * @param connection une connection a la bdd en écriture
-     * @return truee si la commande a été modifié, false sinon
-     */
-    public Boolean setChanCommand(String command, String chan, Connection connection);
+
     
     /**
      * Méthode créant un nouveau chan dans la bdd
      * @param chan le nom du chan a créer
-     * @param connection
      * @return true si le chan a été créé, false sinon
      */
-    public Boolean createNewChan(String chan, Connection connection);
+    public Boolean createNewChan(String chan);
     
     /**
      * Méthode retirant un utilisateur(user) du salon  (chan)

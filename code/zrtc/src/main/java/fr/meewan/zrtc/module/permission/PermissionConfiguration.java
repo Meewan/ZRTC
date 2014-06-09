@@ -26,11 +26,22 @@ public class PermissionConfiguration {
     private final String configAddress;
     private final int configPort;
     private final int listeningPort;
+    private final boolean useSqlCache;
     
     private final String sqlUser;
     private final String sqlPassword;
     private final String sqlAdress;
     private final int sqlPort;
+    private final String sqlDb;
+    
+    private String sqlCacheUser;
+    private String sqlCachePassword;
+    private String sqlCacheAdress;
+    private int sqlCachePort;
+    private String sqlCacheDb;
+    
+    private final String adminUser;
+    private final String adminPassword;
     
     private final Map<String, String> commands;
     
@@ -44,12 +55,28 @@ public class PermissionConfiguration {
         corePort = Integer.parseInt(mainSection.get("corePort"));
         configAddress = mainSection.get("configAddress");
         configPort = Integer.parseInt(mainSection.get("configPort"));
+        useSqlCache = Boolean.getBoolean(mainSection.get("usesqlcache"));
         
         Profile.Section sql = config.get("sql");
         sqlPort = Integer.parseInt(sql.get("sqlport"));
         sqlUser = sql.get("sqluser");
         sqlPassword = sql.get("sqlpassword");
         sqlAdress = sql.get("sqladress");
+        sqlDb = sql.get("sqldb");
+        
+        if(useSqlCache)
+        {
+            sql = config.get("sqlcache");
+            sqlCachePort = Integer.parseInt(sql.get("sqlport"));
+            sqlCacheUser = sql.get("sqluser");
+            sqlCachePassword = sql.get("sqlpassword");
+            sqlCacheAdress = sql.get("sqladress");
+            sqlCacheDb = sql.get("sqldb");
+        }
+        
+        Profile.Section networkAdmin = config.get("networkadmin");
+        adminUser = networkAdmin.get("adminuser");
+        adminPassword = networkAdmin.get("adminpassword");
         
         Profile.Section command = config.get("command");
         commands = new HashMap<>();
@@ -115,6 +142,42 @@ public class PermissionConfiguration {
 
     public Map<String, String> getCommands() {
         return commands;
+    }
+
+    public String getAdminUser() {
+        return adminUser;
+    }
+
+    public String getAdminPassword() {
+        return adminPassword;
+    }
+
+    public boolean isUseSqlCache() {
+        return useSqlCache;
+    }
+
+    public String getSqlDb() {
+        return sqlDb;
+    }
+
+    public String getSqlCacheUser() {
+        return sqlCacheUser;
+    }
+
+    public String getSqlCachePassword() {
+        return sqlCachePassword;
+    }
+
+    public String getSqlCacheAdress() {
+        return sqlCacheAdress;
+    }
+
+    public int getSqlCachePort() {
+        return sqlCachePort;
+    }
+
+    public String getSqlCacheDb() {
+        return sqlCacheDb;
     }
     
 }

@@ -51,28 +51,5 @@ public abstract class Configuration
         return getIni();
     }
     
-    /**
-     * méthode retournant la clef qu'elle soit sous la forme d'une clé ou d'un path précédé par "path:"
-     * @param potentialKey
-     * @return 
-     */
-    protected String parseKey(String potentialKey)
-    {
-        if (potentialKey != null && (potentialKey.substring(0, 5).equals("path:") || potentialKey.substring(0, 6).equals("path :")))
-        {
-            String[] tmp = potentialKey.split(":");
-            String path = tmp[1];
-            //on recolle les morceaux au cas ou il y ai un ":" dans le pah
-            for(int i = 2; i < tmp.length; i++)
-            {
-                path += ":" + tmp[i];
-            }
-            return FileReader.readFile(path);
-        }
-        else
-        {
-            return potentialKey;
-        }
-    }
     
 }

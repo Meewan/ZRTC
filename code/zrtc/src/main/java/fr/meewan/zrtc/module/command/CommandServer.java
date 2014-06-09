@@ -27,14 +27,15 @@ public class CommandServer extends Thread
 {
     private CommandConfiguration configuration;
     private final ZContext context;
-    final public static String EXTERNAL_COM_ADRESS = "inproc://command_external_com_adress";
-    final public static String INTERNAL_COM_ADRESS = "inproc://command_internal_com_adress";
+    final public String EXTERNAL_COM_ADRESS = "inproc://command_external_com_adress";
+    final public String INTERNAL_COM_ADRESS = "inproc://command_internal_com_adress";
     private boolean stop;//champ indiquant si l'arret du serveur a été demandé
     private Map<String, String> comConfiguration;
     private final Map<String, CommandExternalWorker> activeExternalConnexions;
     private final Map<String, CommandExternalWorker> waitingCommands;
     private static final Logger logger = Logger.getLogger(CommandServer.class.getName());
     private List<CommandInternalWorker> internalWorkers;
+    private CommandTimeOutWorker timeOutWorker;
 
     public CommandServer() 
     {
@@ -62,8 +63,10 @@ public class CommandServer extends Thread
             internalWorkers.add(new CommandInternalWorker(this, context));
             internalWorkers.get(i).start();
         }
-        
-        
+        //lancement du worker pour le timeout
+        CommandTimeOutWorker timeOutWorker = new CommandTimeOutWorker(this);
+        timeOutWorker.start();
+        logger.log(Level.INFO, "------------------- Lancement du module de commande termine");
         //boucle pour garder le thread actif (mais sans qu'il consomme trop de ressources)
         //TODO chercher une méthode plus elegante
         while (!stop)

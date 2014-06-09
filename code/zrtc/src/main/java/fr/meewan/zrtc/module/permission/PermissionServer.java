@@ -8,8 +8,13 @@ package fr.meewan.zrtc.module.permission;
 
 import flexjson.JSONDeserializer;
 import fr.meewan.zrtc.module.permission.Cache.ChanCache;
+import fr.meewan.zrtc.module.permission.Cache.ChanCacheImpl;
+import fr.meewan.zrtc.module.permission.Cache.UserCache;
 import fr.meewan.zrtc.module.permission.Cache.UserCacheImpl;
 import fr.meewan.zrtc.module.permission.business.ListRefCommand;
+import fr.meewan.zrtc.network.Proxy;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,22 +31,82 @@ import org.zeromq.ZMQ;
  */
 public class PermissionServer extends Thread
 {
+    private final String INTERNAl_COM_ADRESS = "inproc://internam_permission_module_communication";
+    private final String CONFIG_PATH = "config" + File.separator + "permission.ini";
     private PermissionConfiguration configuration;
     private Map<String, String> comConfiguration; 
-    private UserCacheImpl userCache;
-    private ChanCache cacheMap;
+    private final UserCache userCache;
+    private final ChanCache chanCache;
+    private final Map<String, Boolean> defaultRightMap;
     private static final Logger logger = Logger.getLogger(PermissionServer.class.getName());
-    
+    private final List<PermissionWorker> workers;
+    private boolean stop = false;
     private ZContext context;
+    private Proxy proxy;
+    private Connection connection;
+
+    public PermissionServer() 
+    {
+        defaultRightMap = new HashMap<>();
+        try 
+        {
+            configuration = new PermissionConfiguration(CONFIG_PATH);
+        } 
+        catch (IOException ex) 
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for(String command : configuration.getCommands().keySet())
+        {
+            defaultRightMap.put(command, configuration.getCommands().get(command).toLowerCase().equals("true"));
+        }
+        try 
+        {
+            connection = DriverManager.getConnection("jdbc:mysql://" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() + "/" + configuration.getSqlDb() + "?autoreconnect=true" , configuration.getSqlUser(), configuration.getSqlPassword());
+        } 
+        catch (SQLException e)
+        {
+            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, "SQLException", e);
+        }
+       
+        userCache = new UserCacheImpl(configuration.getAdminUser(), configuration.getAdminPassword(), connection);
+        chanCache = new ChanCacheImpl(connection);  
+       
+        workers = new ArrayList<>();
+    }
     
     @Override
     public void run()
     {
+        logger.log(Level.INFO, "------------------- Lancement du module de commande commencé");
+        context = new ZContext();
         logger.log(Level.INFO, "Chargement des données du réseau");
         loadNetworkConfiguration();
+        logger.log(Level.INFO, "Lancement du proxy pour les workers");
+        proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAl_COM_ADRESS, context);
         logger.log(Level.INFO, "verification des commandes enregistré en base");
-        checkCommandInBase();
-
+        checkCommandInBase(connection);
+        
+        for (int i = 0; i < configuration.getMaxWorkers(); i++)
+        {
+            PermissionWorker worker = new PermissionWorker(this, context);
+            worker.start();
+            workers.add(worker);
+        }
+        //on garde en vie
+        logger.log(Level.INFO, "------------------- Lancement du module de permission termine");
+        while (!stop)
+        {
+            synchronized(this)
+            {
+                try {
+                    this.wait(100);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        logger.log(Level.WARNING, "mort du serveur de Permission");
     }
 
     /**
@@ -79,19 +144,9 @@ public class PermissionServer extends Thread
      * Méthode vérifiant les commandes qui sont en base et les ajoutant si besoin
      * @return 
      */
-    private void checkCommandInBase()
+    private void checkCommandInBase(Connection connection)
     {
-        java.sql.Connection connection = null;
-        try 
-        {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql:" + configuration.getSqlAdress() + ":" + configuration.getSqlPort() , configuration.getSqlUser(), configuration.getSqlPassword());
-        } 
-        catch (Exception e) 
-        {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, e);
-            return ;
-        }
+        
         Statement statement = null;
         try 
         {
@@ -113,6 +168,7 @@ public class PermissionServer extends Thread
             return;
         }
         List<ListRefCommand> commandList = new ArrayList<>();
+        logger.log(Level.INFO, "creation de la liste des commandes en base");
         try 
         {
             while(rs.next())
@@ -140,7 +196,7 @@ public class PermissionServer extends Thread
                         {
                             dbCommand.persist(connection);
                         } 
-                        catch (Exception ex) 
+                        catch (SQLException ex) 
                         {
                             Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
                             return;
@@ -152,27 +208,44 @@ public class PermissionServer extends Thread
             }
             if(!inbase)// si la commande est dans le fichier de conf et pas en base, on l'ajoute
             {
+                logger.log(Level.INFO, "{0}n''est pas en base, on l''ajoute", command);
                 ListRefCommand newCommand = new ListRefCommand(command, configuration.getCommands().get(command));
                 try 
                 {
                     newCommand.persist(connection);
                 } 
-                catch (Exception ex) 
+                catch (SQLException ex) 
                 {
                     Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
                     return;
                 }
             }
         }
-        
-        try 
-        {
-            connection.close();
-        } 
-        catch (SQLException ex) 
-        {
-            Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        logger.log(Level.INFO, "fin de la verification des commandes en base");
+    }
+
+    public void setStop(boolean stop) {
+        this.stop = stop;
+    }
+
+    public String getINTERNAl_COM_ADRESS() {
+        return INTERNAl_COM_ADRESS;
+    }
+
+    public Map<String, String> getComConfiguration() {
+        return comConfiguration;
+    }
+
+    public UserCache getUserCache() {
+        return userCache;
+    }
+
+    public ChanCache getChanCache() {
+        return chanCache;
+    }
+
+    public Map<String, Boolean> getDefaultRightMap() {
+        return defaultRightMap;
     }
     
 }

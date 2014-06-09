@@ -74,5 +74,31 @@ public class NetworkMessage {
         return message;
     }
     
+    /**
+     * méthode créant un nouveau message conforme 
+     * @param commandId l'id de la commande a laquelle on répond
+     * @param command la commande qu'on envois au client
+     * @param args les arguments de la commande
+     * @return 
+     */
+    public static Map<String, String>generateMessage(String commandId, String command, String ... args )
+    {
+        Map <String, String > message = new HashMap<>();
+        message.put("command", command);
+        message.put("commandid", commandId);
+        for(int i = 0;args != null && i < args.length ; i++)
+        {
+            if(args[i] != null)
+            {
+                message.put("arg"+i, args[i]);
+            }             
+        }
+        message.put("argc", (Integer.toString(args.length)));
+        message.put("authorized", "true");
+        message.put("correctsignature", "true");
+        message.put("fromnetwork" , "true");
+        return message;
+    }
+    
     
 }

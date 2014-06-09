@@ -35,8 +35,19 @@ public class PermissionModule implements Module {
     }
 
     @Override
-    public void restartModule() {
-        
+    public void restartModule() 
+    {
+        //on tue le thread 
+        permissionServer.setStop(true);
+        try {
+            permissionServer.join();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(PermissionModule.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //on recrée un serveur
+        permissionServer = new PermissionServer();
+        //on le configure et on le lance
+        startModule();
     }
 
     @Override

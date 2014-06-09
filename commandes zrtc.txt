@@ -1,27 +1,29 @@
 ﻿Liste des commandes server
 syntaxe : COMMAND#ARG0#ARG1....
 
-CONNECT#[SERVER pUBLIC KEY] //annonce de la clef publique du server
-CONTACT#[ip/URL]#[port]//changement de serveur de commande
-JOIN#[ip/url]#[port]//information sur comment rejoindre le chan demandé
+CONNECT#[user uid] //annonce de la clef uid a utiliser par le client
 MODE#[source]#[droits]//information du client sur un changement de droits
 MESSAGE#[source]#[message]//ouverture d'un canal privé via le serveur
-P2PMSG#[source]#[ip]#[PORT]//couverture du'une connexion de client a client
 DEFAULT#[errcode]//réponse par defaut ou erreur.
 PING// mise en place d'une boucle de retour avec le serveur
+PING// reponse relance de la boucle de retour serveur
 
 liset des commandes clients
-user#command#arg0#arg1...#[gpg signature]
+user#command#arg0#arg1...#[pgp signature]
 
-CONNECT#[pseudo]#[public key]//annonce de demande de connexion a un serveur
-MODE[[chan]#[cible]#[droits]//demande de modifications de droits
-JOIN#[cible]//demande de connexion au chan.
+CONNECT#[public key]//annonce de demande de connexion a un serveur
 MESSAGE#[cible]#[message]//message privé du serv
-P2PMSG#[cible]#[ip]#[port]//demande de connexion P2P a un client(ne sera pas implémenter dans un premier temps)
-DEFAULT#[errcode]//réponse par defaut ou erreur.
-SAY#[cible]#[message] //envois [message] sur le canal [cible]
-REGISTER#[mail]#[password]//enregistremnt d'un compte
+REGISTER#[password]//enregistremnt d'un compte
 IDENTIFY#[password]// login sur le réseau.
 
 NICK#[nouveau pseudo]//renome la personne
 PING// mise en place d'une boucle de retour avec le serveur
+
+DEFAULT#[errcode]//réponse par defaut ou erreur.
+QUIT//se déconnecte du reseau
+
+
+MODE#[type]#[arg1]#[arg2]#[commande]#[droit]//demande de modifications de droits [type] est soit "user" soit "chan" si le type est "user" et que ça concerne un droit sur un chan alors le "user" concerné  est passé en arg2 et le "chan" est passé en arg1 sinon le arg2 n'existe pas et la cible est en ar1. droitr peut prendre les valeur "true", "false" ou "unset"
+JOIN#[cible]//demande de connexion au chan.
+SAY#[cible]#[message] //envois [message] sur le canal [cible]
+PART#[cible]// se deconnecte de cible
