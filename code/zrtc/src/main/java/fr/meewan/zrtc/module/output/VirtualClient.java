@@ -1,5 +1,7 @@
 package fr.meewan.zrtc.module.output;
 
+import java.util.ArrayList;
+
 import org.zeromq.*;
 import org.zeromq.ZMQ.*;
 
@@ -11,6 +13,7 @@ public class VirtualClient extends Thread
 	private Socket subscriber;
 	private final String firstChan;
 	private boolean stop = false;
+	private ArrayList<String> chans = new ArrayList<String>();
 	
 	public VirtualClient(ZContext coreContext, ZContext edgeContext, String identity, String firstChan)
 	{
@@ -18,6 +21,7 @@ public class VirtualClient extends Thread
 		this.edgeContext = edgeContext;
 		this.identity = identity;
 		this.firstChan = firstChan;
+		chans.add(firstChan);
 		
 		this.start();
 	}
@@ -40,15 +44,20 @@ public class VirtualClient extends Thread
 			msg.wrap(new ZFrame(identity));
 			msg.send(pusher);
 		}
+		
+		coreContext.destroySocket(subscriber);
+		edgeContext.destroySocket(pusher);
 	}
 	
 	public void subscribe(String topic)
 	{
+		chans.add(topic);
 		subscriber.subscribe(topic.getBytes());
 	}
 	
 	public void unsubscribe(String topic)
 	{
+		chans.remove(topic);
 		subscriber.unsubscribe(topic.getBytes());
 	}
 
@@ -59,5 +68,9 @@ public class VirtualClient extends Thread
 	public void setStop(boolean stop)
 	{
 		this.stop = stop;
+	}
+
+	public ArrayList<String> getChans() {
+		return chans;
 	}
 }

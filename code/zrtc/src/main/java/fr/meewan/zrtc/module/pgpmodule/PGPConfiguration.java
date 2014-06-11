@@ -1,6 +1,6 @@
 
 
-package fr.meewan.zrtc.module.output;
+package fr.meewan.zrtc.module.pgpmodule;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,28 +12,37 @@ import org.ini4j.Wini;
  *
  * @author Meewan
  */
-public class OutputConfiguration 
+public class PGPConfiguration 
 {
     private final String coreAddress;
     private final int corePort;
-    private final int externalPort;
+    private final int subPort;
+    private final String subAddress;
     private final String configAddress;
     private final int configPort;
     private final int nbWorkers;
     
-    public OutputConfiguration(String path) throws IOException
+    public PGPConfiguration(String path) throws IOException
     {
         Ini config = getIni(path);
         Profile.Section mainSection = config.get("main");
-        externalPort = Integer.parseInt(mainSection.get("externalPort"));
+        subPort = Integer.parseInt(mainSection.get("subPort"));
+        if(mainSection.containsKey("subAddress"))
+        	subAddress = mainSection.get("subAddress");
+        else
+        	subAddress = "*";
         coreAddress = mainSection.get("coreAddress");
         corePort = Integer.parseInt(mainSection.get("corePort"));
         configAddress = mainSection.get("configAddress");
         configPort = Integer.parseInt(mainSection.get("configPort"));
         nbWorkers = Integer.parseInt(mainSection.get("nbWorkers"));
     }
-    
-    private Ini getIni(String path) throws IOException
+
+	public int getNbWorkers() {
+		return nbWorkers;
+	}
+
+	private Ini getIni(String path) throws IOException
     {
         if(File.separator.equals("\\"))
         {
@@ -44,6 +53,14 @@ public class OutputConfiguration
             return new Ini(new File(path));
         }
     }
+    
+    public int getSubPort() {
+		return subPort;
+	}
+
+	public String getSubAddress() {
+		return subAddress;
+	}
 
     public String getCoreAddress() {
         return coreAddress;
@@ -53,20 +70,12 @@ public class OutputConfiguration
         return corePort;
     }
 
-    public int getExternalPort() {
-        return externalPort;
-    }
-
 	public String getConfigAddress() {
 		return configAddress;
 	}
 
 	public int getConfigPort() {
 		return configPort;
-	}
-
-	public int getNbWorkers() {
-		return nbWorkers;
 	}
 
     

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package fr.meewan.zrtc.module.output;
+package fr.meewan.zrtc.module.pgpmodule;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
@@ -28,29 +28,25 @@ import org.zeromq.ZMQ.*;
  * serveur multi-threadé
  * @author Meewan
  */
-public class OutputServer extends Thread
+public class PGPServer extends Thread
 {
-    private OutputConfiguration configuration;
-    private ZContext coreContext;
-    private ZContext edgeContext;
+    private PGPConfiguration configuration;
+    private ZContext ctx;
     private boolean stop = true;//champ indiquant si l'arret du serveur a été demandé
     private Map<String, String> comConfiguration;
-    private static final Logger logger = Logger.getLogger(OutputServer.class.getName());
-    private Proxy edgeProxy;
-    private Proxy internalProxy;
+    private static final Logger logger = Logger.getLogger(PGPServer.class.getName());
+    private PGPProxy loadBalancer;
     private Socket publisher;
     private Socket internalInput;
     private Socket internalOutput;
-    private HashMap<String, VirtualClient> clients = new HashMap<>();
     private String msgDelimiter = "#";
-    private ArrayList<OutputWorker> workers = new ArrayList<OutputWorker>();
+    private ArrayList<PGPWorker> workers = new ArrayList<PGPWorker>();
 
-    public OutputServer() 
+    public PGPServer() 
     {
        
         this.stop = false;
-        coreContext = new ZContext();
-        edgeContext = new ZContext();
+        ctx = new ZContext();
     }
 
     @Override
@@ -59,32 +55,31 @@ public class OutputServer extends Thread
         logger.log(Level.INFO, "lancement du serveur d'output");
         loadNetworkConfiguration();
         
-        logger.log(Level.INFO, "démarrage du proxy (output)");
-        edgeProxy = new Proxy("tcp://*:" + configuration.getExternalPort(), "inproc://outputProxy", edgeContext);
-    	//edgeProxy = new Proxy("tcp://*:" + configuration.getExternalPort(), "tcp://127.0.0.1:5559");
+        logger.log(Level.INFO, "démarrage du proxy (pgp)");
+        String[] backBinds = {"inproc://pgpWorkers", "tcp://" + configuration.getSubAddress() + ":" + configuration.getSubPort()};
+        loadBalancer = new PGPProxy(ctx, "tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(), backBinds);
+        while(!loadBalancer.isReady())
+        {
+        	try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        logger.log(Level.INFO, "proxy démarré (pgp)");
 
-        logger.log(Level.INFO, "démarrage des sockets de publication (réseau interne et intra-module) (output)");
-        publisher = coreContext.createSocket(ZMQ.PUB);
-        publisher.bind("inproc://outputPublisher");
-        //publisher.bind("tcp://127.0.0.1:5558");
-        internalOutput = coreContext.createSocket(ZMQ.PUSH);
-
-        logger.log(Level.INFO, "démarrage du proxy input réseau interne (output)");
-        internalProxy = new Proxy("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),
-        		"inproc://outputWorkers", coreContext);
-        
-        logger.log(Level.INFO, "démarrage des workers (output)");
+        logger.log(Level.INFO, "démarrage des workers (pgp)");
         for(int i = 0; i < configuration.getNbWorkers(); i++)
         {
-        	OutputWorker worker = new OutputWorker(coreContext, edgeContext, "inproc://outputWorkers", publisher,
-        			comConfiguration, clients, msgDelimiter);
+        	PGPWorker worker = new PGPWorker(ctx, comConfiguration, "inproc://pgpWorkers");
         	worker.start();
         	workers.add(worker);
         }
+        logger.log(Level.INFO, "workers démarrés (pgp)");
+
+        logger.log(Level.INFO, "module PGP opérationel");
         
-        stop = false;
-        
-        logger.log(Level.INFO, "démarrage des fonctionnalités (output)");
         while(!stop)
         {
         	try {
@@ -95,7 +90,7 @@ public class OutputServer extends Thread
 			}
         }
         
-        logger.log(Level.WARNING, "mort du serveur d'output");
+        logger.log(Level.WARNING, "mort du serveur PGP");
     }
     
     
@@ -105,7 +100,7 @@ public class OutputServer extends Thread
     public void loadNetworkConfiguration()
     {
         logger.log(Level.INFO, "Récuperation de la configuration du réseau serveur d'output");
-        ZMQ.Socket speaker = edgeContext.createSocket(ZMQ.REQ);
+        ZMQ.Socket speaker = ctx.createSocket(ZMQ.REQ);
         speaker.connect("tcp://"+ configuration.getConfigAddress() + ":" + configuration.getConfigPort());
         speaker.send("hello",0);
         byte[] reply = speaker.recv(0);
@@ -123,11 +118,11 @@ public class OutputServer extends Thread
         speaker.close();
     }
     
-    public OutputConfiguration getConfiguration() {
+    public PGPConfiguration getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(OutputConfiguration configuration) {
+    public void setConfiguration(PGPConfiguration configuration) {
         this.configuration = configuration;
     }
     
@@ -137,9 +132,17 @@ public class OutputServer extends Thread
     	{
     		return;
     	}
-    	edgeProxy.restart("tcp://*:" + configuration.getExternalPort(), "inproc://outputProxy");
-    	internalProxy.restart("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),
-        		"inproc://outputWorkers");
+    	String[] backBinds = {"inproc://pgpWorkers", "tcp://" + configuration.getSubAddress() + ":" + configuration.getSubPort()};
+    	loadBalancer.restart("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(), backBinds);
+    	ArrayList<PGPWorker> newList = new ArrayList<PGPWorker>();
+    	for(PGPWorker wrk : workers)
+    	{
+    		PGPWorker newWrk = wrk.restart("inproc://pgpWorkers");
+    		newWrk.start();
+    		newList.add(newWrk);
+    		wrk.setStop(true);
+    	}
+    	workers = newList;
     }
 
     public boolean isStop() {
