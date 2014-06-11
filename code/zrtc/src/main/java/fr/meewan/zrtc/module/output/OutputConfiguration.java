@@ -19,6 +19,7 @@ public class OutputConfiguration
     private final int externalPort;
     private final String configAddress;
     private final int configPort;
+    private final int nbWorkers;
     
     public OutputConfiguration(String path) throws IOException
     {
@@ -29,6 +30,7 @@ public class OutputConfiguration
         corePort = Integer.parseInt(mainSection.get("corePort"));
         configAddress = mainSection.get("configAddress");
         configPort = Integer.parseInt(mainSection.get("configPort"));
+        nbWorkers = Integer.parseInt(mainSection.get("nbWorkers"));
     }
     
     private Ini getIni(String path) throws IOException
@@ -61,6 +63,10 @@ public class OutputConfiguration
 
 	public int getConfigPort() {
 		return configPort;
+	}
+
+	public int getNbWorkers() {
+		return nbWorkers;
 	}
 
     

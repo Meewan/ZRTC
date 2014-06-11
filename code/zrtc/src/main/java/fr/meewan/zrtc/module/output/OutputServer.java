@@ -37,11 +37,13 @@ public class OutputServer extends Thread
     private Map<String, String> comConfiguration;
     private static final Logger logger = Logger.getLogger(OutputServer.class.getName());
     private Proxy edgeProxy;
+    private Proxy internalProxy;
     private Socket publisher;
     private Socket internalInput;
     private Socket internalOutput;
     private HashMap<String, VirtualClient> clients = new HashMap<>();
     private String msgDelimiter = "#";
+    private ArrayList<OutputWorker> workers = new ArrayList<OutputWorker>();
 
     public OutputServer() 
     {
@@ -67,28 +69,30 @@ public class OutputServer extends Thread
         //publisher.bind("tcp://127.0.0.1:5558");
         internalOutput = coreContext.createSocket(ZMQ.PUSH);
 
-        logger.log(Level.INFO, "démarrage de la socket input réseau interne (output)");
-        internalInput = coreContext.createSocket(ZMQ.PULL);
-        internalInput.bind("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort());
+        logger.log(Level.INFO, "démarrage du proxy input réseau interne (output)");
+        internalProxy = new Proxy("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),
+        		"inproc://outputWorkers", coreContext);
+        
+        logger.log(Level.INFO, "démarrage des workers (output)");
+        for(int i = 0; i < configuration.getNbWorkers(); i++)
+        {
+        	OutputWorker worker = new OutputWorker(coreContext, edgeContext, "inproc://outputWorkers", publisher,
+        			comConfiguration, clients, msgDelimiter);
+        	worker.start();
+        	workers.add(worker);
+        }
         
         stop = false;
         
         logger.log(Level.INFO, "démarrage des fonctionnalités (output)");
         while(!stop)
         {
-        	ZMsg msg = ZMsg.recvMsg(internalInput);
-        	System.out.println("Received message: " + msg.size());
-        	
-        	if(msg.size() == 1)
-        	{
-        		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(msg.getFirst().toString());
-        		
-        		if(msgMap.get("authorized").equals("true") && msgMap.get("correctsignature").equals("true"))
-        		{
-        			execute(msgMap);
-        		}
-        		sendInNetwork(msgMap);
-        	}
+        	try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
         
         logger.log(Level.WARNING, "mort du serveur d'output");
@@ -134,9 +138,8 @@ public class OutputServer extends Thread
     		return;
     	}
     	edgeProxy.restart("tcp://*:" + configuration.getExternalPort(), "inproc://outputProxy");
-    	coreContext.destroySocket(internalInput);
-    	internalInput = coreContext.createSocket(ZMQ.PULL);
-    	internalInput.bind("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort());
+    	internalProxy.restart("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),
+        		"inproc://outputWorkers");
     }
 
     public boolean isStop() {
@@ -149,165 +152,6 @@ public class OutputServer extends Thread
 
     public Map<String, String> getComConfiguration() {
         return comConfiguration;
-    }
-    
-    /**
-     * Méthode exécutant le traitement à faire et vérifiant les droits.
-     * @param message
-     * @return 
-     */
-    private Map<String, String> execute(Map <String, String> message)
-    {
-        String command = message.get("command");
-        boolean authorized = message.get("authorized") != null && "true".equals(message.get("authorized"));
-        boolean correctsignature = message.get("correctsignature")!= null && "true".equals(message.get("correctsignature"));
-        String commandId = message.get("commandid");
-        String user = message.get("user");
-        // En attendant la vrai variable
-        String uId = user;
-        // Nécessaire pour la commande nick??
-        String oldUser = user;
-        int state = Integer.parseInt(message.get("state")) + 1;
-        int argc = Integer.parseInt(message.get("argc"));
-        List<String> args = new ArrayList<>();
-        for(int i = 0; i < argc; i++)
-        {
-            args.add(i, message.get("arg" + i));
-        }
-        if (!authorized)
-        {
-            message = NetworkMessage.generateErrorMessage(2, commandId);
-        }
-        else if(!correctsignature)
-        {
-            message = NetworkMessage.generateErrorMessage(3, commandId);
-        }
-        else
-        {
-            switch (command.toLowerCase())// traitement pour chaque commande
-            {
-                case "join":
-                {
-                    if(clients.containsKey(uId))
-                    {
-                    	clients.get(uId).subscribe(args.get(0));
-                    }
-                    else
-                    {
-                    	clients.put(uId, new VirtualClient(coreContext, edgeContext, user, args.get(0)));
-                    }
-                	
-                	ZMsg msg = new ZMsg();
-                	msg.add(args.get(0));
-                	String content = 
-                			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary((user + " has joined the channel").getBytes());
-                	msg.add(content);
-                	msg.send(publisher);
-                }
-                    break;
-                    
-                case "say":
-                {
-                	ZMsg msg = new ZMsg();
-                	msg.add(args.get(0));
-                	String content = 
-                			DatatypeConverter.printBase64Binary("message".getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary(user.getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary(args.get(1).getBytes());
-                	msg.add(content);
-                	msg.send(publisher);
-                }
-                    break;
-                    
-                case "nick":
-                {
-                	if(clients.containsKey(uId))
-                    {
-                    	ArrayList<String> chansToNotify = clients.get(uId).getChans();
-                    	ZMsg msg = new ZMsg();
-                    	String content = 
-                    			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                    			DatatypeConverter.printBase64Binary((oldUser + " is now known as " + user).getBytes());
-                    	msg.add(content);
-                    	for(String chan : chansToNotify)
-                    	{
-                    		ZMsg tmp = msg.duplicate();
-                    		tmp.addFirst(chan);
-                    		tmp.send(publisher);
-                    	}
-                    }
-                }
-                    break;
-                    
-                case "part":
-                {
-                	if(clients.containsKey(uId))
-                    {
-                    	for(String chan : args)
-                    	{
-                    		VirtualClient client = clients.get(uId);
-                    		if(client.getChans().contains(chan))
-                    		{
-                    			client.unsubscribe(chan);
-                    			ZMsg msg = new ZMsg();
-                    			msg.add(chan);
-                            	String content = 
-                            			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                            			DatatypeConverter.printBase64Binary((user + "has left the channel").getBytes());
-                            	msg.add(content);
-                    		}
-                    	}
-                    }
-                }
-                    break;
-                    
-                case "partall":
-                {
-                	if(clients.containsKey(user))
-                    {
-                    	VirtualClient client = clients.get(uId);
-                		for(String chan : client.getChans())
-                		{
-                			client.unsubscribe(chan);
-                			ZMsg msg = new ZMsg();
-                			msg.add(chan);
-                        	String content = 
-                        			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                        			DatatypeConverter.printBase64Binary((user + "has left the channel").getBytes());
-                        	msg.add(content);
-                		}
-                    }
-                }
-                    break;
-                    
-                case "quit":
-                {
-                	if(clients.containsKey(uId))
-                    {
-                    	VirtualClient client = clients.get(user);
-                		for(String chan : client.getChans())
-                		{
-                			client.unsubscribe(chan);
-                			ZMsg msg = new ZMsg();
-                			msg.add(chan);
-                        	String content = 
-                        			DatatypeConverter.printBase64Binary("info".getBytes()) + msgDelimiter +
-                        			DatatypeConverter.printBase64Binary((user + "has left the channel (" + args.get(0) + ")").getBytes());
-                        	msg.add(content);
-                		}
-                		clients.remove(uId);
-                		client.setStop(true);
-                    }
-                }
-                    break;
-                    
-                default:
-                    return NetworkMessage.generateErrorMessage(0, commandId);
-                    
-            }
-        }
-        return message;
     }
     
     private void sendInNetwork(Map<String, String> message)
