@@ -20,6 +20,7 @@ public class CommandConfiguration
     private final String configAddress;
     private final int configPort;
     private final int listeningPort;
+    private final int publicListeningPort;
     
     public CommandConfiguration(String path) throws IOException
     {
@@ -30,7 +31,8 @@ public class CommandConfiguration
         coreAddress = mainSection.get("coreAddress");
         corePort = Integer.parseInt(mainSection.get("corePort"));
         configAddress = mainSection.get("configAddress");
-        configPort = Integer.parseInt(mainSection.get("configPort"));    
+        configPort = Integer.parseInt(mainSection.get("configPort")); 
+        publicListeningPort = Integer.parseInt(mainSection.get("publiclisteningport"));
     }
     
     private Ini getIni(String path) throws IOException
@@ -67,6 +69,10 @@ public class CommandConfiguration
 
     public int getListeningPort() {
         return listeningPort;
+    }
+
+    public int getPublicListeningPort() {
+        return publicListeningPort;
     }
             
 }
