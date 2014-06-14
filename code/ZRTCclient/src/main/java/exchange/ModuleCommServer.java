@@ -139,7 +139,7 @@ public class ModuleCommServer extends Thread{
         echange.connect(adresse);
         
         //on envoi la demande de connexion
-        String message = encode(user.getNick())+encode("CONNECT")+encode(user.getSignature());
+        String message = encode(user.getNick())+encode("CONNECT")+encode(user.getPgpKey())+encode(user.getSignature());
         echange.send(message.getBytes(),0);
         
         //on attend la réponse du server

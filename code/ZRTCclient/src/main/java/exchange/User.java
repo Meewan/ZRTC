@@ -15,12 +15,14 @@ public class User {
     private String password;
     private String fonction;
     private String signature;
+    private String pgpKey;
     
     public User(String nick, String passw, String fonct){
         this.nickname=nick;
         this.password=passw;
         this.fonction=fonct;
         this.signature="SIGNATURE";
+        this.pgpKey = "pgpKey";
     }
     
     public String getNick(){
@@ -37,5 +39,9 @@ public class User {
     
     public void setPass(String password){
         this.password=password;
+    }
+    
+    public String getPgpKey() {
+        return pgpKey;
     }
 }
