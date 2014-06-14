@@ -57,6 +57,7 @@ public class Zrtc {
         {
             Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module {0}", moduleName);
             internalModules.get(moduleName).startModule();
+            //Thread.sleep(5000);
             Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module {0} termin\u00e9", moduleName);
         }
         Logger.getLogger(Zrtc.class.getName()).log(Level.INFO, "Demarage du module reseau du core termine");
@@ -83,10 +84,10 @@ public class Zrtc {
         comConfiguration = new HashMap<>();
         for(String moduleName : moduleNamesSet)
         {
-            String adress = configuration.getModuleList().get(moduleName).getAdress();
+            String adress = "tcp://" + configuration.getModuleList().get(moduleName).getAdress();
             if(configuration.getModuleList().get(moduleName).getPublicListeningPort() != 0)
             {
-                adress += configuration.getModuleList().get(moduleName).getPublicListeningPort();
+                adress += ":" + configuration.getModuleList().get(moduleName).getPublicListeningPort();
             }
             comConfiguration.put(moduleName, adress);
             
