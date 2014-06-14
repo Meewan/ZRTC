@@ -60,7 +60,9 @@ public class PGPWorker extends Thread
         		if(msgMap.get("authorized").equals("true") && msgMap.containsKey("signature") &&
         				msgMap.containsKey("pgpkey") && msgMap.containsKey("commandraw"))
         		{
-        			msgMap = verify(msgMap);
+        			msgMap.put("correctsignature", "true");
+        			// Décommenter pour utiliser le vrai execute
+        			//msgMap = verify(msgMap);
         		}
         		sendInNetwork(msgMap);
         	}
