@@ -131,6 +131,7 @@ public class CommandExternalWorker extends Thread
         message.put("authorized", "false");
         message.put("correctsignature", "false");
         message.put("fromnetwork" , "false");
+        message.put("commandraw", rawMessage.substring(0, rawMessage.lastIndexOf(this.DELIMITER)));
         //signature du clilent
         message.put("signature", tmp[tmp.length - 1]);
         return message;
