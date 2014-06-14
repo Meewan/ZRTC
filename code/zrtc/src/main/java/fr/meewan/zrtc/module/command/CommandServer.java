@@ -52,8 +52,8 @@ public class CommandServer extends Thread
         this.stop = false;
         loadNetworkConfiguration();
         logger.log(Level.INFO, "lancement du proxy pour le serveur de commande");
-        Proxy proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), EXTERNAL_COM_ADRESS, context);
-        
+        Proxy internalProxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAL_COM_ADRESS, context);
+        Proxy externalProxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort(), EXTERNAL_COM_ADRESS, context);
         //on lance le premier thread, c'est qui qui lancera les autres petit a petit
         (new CommandExternalWorker(this, context)).start();
         //on lance les workers internes
@@ -64,8 +64,8 @@ public class CommandServer extends Thread
             internalWorkers.get(i).start();
         }
         //lancement du worker pour le timeout
-        CommandTimeOutWorker timeOutWorker = new CommandTimeOutWorker(this);
-        timeOutWorker.start();
+//        CommandTimeOutWorker timeOutWorker = new CommandTimeOutWorker(this);
+//        timeOutWorker.start();
         logger.log(Level.INFO, "------------------- Lancement du module de commande termine");
         //boucle pour garder le thread actif (mais sans qu'il consomme trop de ressources)
         //TODO chercher une méthode plus elegante
