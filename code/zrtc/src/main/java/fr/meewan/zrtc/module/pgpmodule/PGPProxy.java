@@ -27,6 +27,7 @@ public class PGPProxy extends Thread
 		this.ctx = ctx;
 		this.frontBind = frontBind;
 		this.backBinds = backBinds;
+                this.start();
 	}
 	
 	public void run()
