@@ -10,7 +10,6 @@ import org.zeromq.ZMsg;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
-import fr.meewan.zrtc.network.Proxy;
 
 public class PGPProxy extends Thread
 {

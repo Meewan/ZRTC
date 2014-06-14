@@ -8,17 +8,13 @@ package fr.meewan.zrtc.module.pgpmodule;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.network.Proxy;
-import fr.meewan.zrtc.utils.NetworkMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.DatatypeConverter;
 
 import org.zeromq.*;
 import org.zeromq.ZMQ.*;
@@ -52,7 +48,7 @@ public class PGPServer extends Thread
     @Override
     public void run()
     {
-        logger.log(Level.INFO, "lancement du serveur d'output");
+        logger.log(Level.INFO, "lancement du serveur de validation des signatures pgp");
         loadNetworkConfiguration();
         
         logger.log(Level.INFO, "démarrage du proxy (pgp)");
@@ -99,7 +95,7 @@ public class PGPServer extends Thread
      */
     public void loadNetworkConfiguration()
     {
-        logger.log(Level.INFO, "Récuperation de la configuration du réseau serveur d'output");
+        logger.log(Level.INFO, "Récuperation de la configuration du réseau serveur pgp");
         ZMQ.Socket speaker = ctx.createSocket(ZMQ.REQ);
         speaker.connect("tcp://"+ configuration.getConfigAddress() + ":" + configuration.getConfigPort());
         speaker.send("hello",0);
