@@ -60,7 +60,7 @@ public class Window extends JFrame implements ActionListener {
     
     public Window(){
         //Création de la fenètre
-        this.setTitle("ZRTC - Le chat IRC en Java");
+        this.setTitle("ZRTC - Le chat en temps réel en Java");
         this.setSize(800,700);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
