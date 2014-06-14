@@ -19,9 +19,6 @@ import org.zeromq.ZMQ.Socket;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import java.io.IOException;
-import java.security.SignatureException;
-import org.bouncycastle.openpgp.PGPException;
 
 public class PGPWorker extends Thread
 {
@@ -52,7 +49,8 @@ public class PGPWorker extends Thread
 			ZMsg msg = ZMsg.recvMsg(sck);
 			// Remove address frame
 			msg.pop();
-			
+			msg.pop();//pourquoi une frame vide ?
+                        
 			if(msg.size() == 1)
         	{
         		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(msg.getFirst().toString());
@@ -102,7 +100,7 @@ public class PGPWorker extends Thread
 			
 			msg.put("correctsignature", (signature.verify())?"true":"false");
 		}
-		catch(IOException | PGPException | SignatureException ex)
+		catch(Exception ex)
 		{
 			// TODO Auto-generated catch block
 			ex.printStackTrace();
