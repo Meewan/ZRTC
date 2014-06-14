@@ -64,7 +64,7 @@ public class CommandExternalWorker extends Thread
         {
             ZMQ.Socket speaker = context.createSocket(ZMQ.REQ);
             //on se connecte au noyau pour qu'il complete l'objet
-            speaker.connect(commandServer.getConfiguration().getCoreAddress() + ":" + commandServer.getConfiguration().getCorePort());
+            speaker.connect("tcp://" +commandServer.getConfiguration().getCoreAddress() + ":" + commandServer.getConfiguration().getCorePort());
             //on lui passe le message
             speaker.send(new JSONSerializer().serialize(inputMessage),0);
             //on ferme la connexion (on a pas besoin de sa réponse)
@@ -74,7 +74,11 @@ public class CommandExternalWorker extends Thread
             {
                 try 
                 {
-                    this.wait();
+                    synchronized (this)
+                    {
+                        this.wait();
+                    }
+                    
                 }
                 catch (InterruptedException ex) 
                 {
@@ -116,11 +120,13 @@ public class CommandExternalWorker extends Thread
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[1]))); 
         //liste des arguments
         int i;
+        int j = 0;
         for(i = 2; i < (tmp.length -1); i++)
         {
+            j++;
             message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
         }
-        message.put("argc", ((Integer)(i -1)).toString());
+        message.put("argc", ((Integer)(j)).toString());
         //on initialise un certain nombre de variables
         message.put("authorized", "false");
         message.put("correctsignature", "false");
