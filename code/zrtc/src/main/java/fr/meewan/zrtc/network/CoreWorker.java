@@ -51,9 +51,10 @@ public class CoreWorker extends Thread
             String request = socket.recvStr (0);
             socket.send("ok", 0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
-            if(message.get("command") != null && ! message.get("command").equals("") && commands.get(message.get("command"))!= null)
+            String command = message.get("command") ;
+            if( command!= null && !"".equals(command) && commands.containsKey(command.toLowerCase()))
             {
-                List<String> lifeCycle = commands.get(message.get("command"));
+                List<String> lifeCycle = commands.get(command.toLowerCase());
                 int i;
                 for(i = 0; i< lifeCycle.size(); i++)
                 {
