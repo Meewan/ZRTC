@@ -50,7 +50,7 @@ class PermissionWorker extends Thread
             {
                 execute(message);
             }
-            else if(message.get("authorized") == null)// si personne n'a géré les authorisations pour ce message
+            else// si personne n'a géré les authorisations pour ce message
             {
                 message.put("authorized", resolvePermission(message)? "true" : "false");
                 if(!message.get("command").toLowerCase().equals("connect"))

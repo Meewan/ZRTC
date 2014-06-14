@@ -48,7 +48,7 @@ public class UserCacheImpl implements UserCache{
         if(cache.containsKey(user))
             return cache.get(user).getRight(command, chan);
         else
-            return false;
+            return null;
     }
 
     @Override
