@@ -1,13 +1,10 @@
 package fr.meewan.zrtc.module.pgpmodule;
 
-import java.io.IOException;
-import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
@@ -64,6 +61,10 @@ public class PGPWorker extends Thread
         			// Décommenter pour utiliser le vrai execute
         			//msgMap = verify(msgMap);
         		}
+                        else
+                        {
+                            msgMap.put("correctsignature", "false");
+                        }
         		sendInNetwork(msgMap);
         	}
 			
