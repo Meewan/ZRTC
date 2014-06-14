@@ -66,7 +66,16 @@ public class PGPWorker extends Thread
                         {
                             msgMap.put("correctsignature", "false");
                         }
-        		sendInNetwork(msgMap);
+                        
+                        //gestion du cycle de vie
+                        Integer state = Integer.parseInt(msgMap.get("state"));
+                        state ++;
+                        msgMap.put("state", state.toString());
+                        if(state <= Integer.parseInt(msgMap.get("lifecyclestates")))
+                        {
+                            sendInNetwork(msgMap);
+                        }
+        		
         	}
 			
 			sck.send("READY");
@@ -112,7 +121,8 @@ public class PGPWorker extends Thread
     private void sendInNetwork(Map<String, String> message)
     {
         //on se connecte au au suivant pour qu'il complete l'objet
-    	internalOutput.connect(this.comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
+        String nextAddr = this.comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state"))));
+    	internalOutput.connect(nextAddr);
         //on lui passe le message
     	internalOutput.send(new JSONSerializer().serialize(message),0);
         //on ferme la connexion (on a pas besoin de sa réponse)
