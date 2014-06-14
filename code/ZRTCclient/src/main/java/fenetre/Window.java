@@ -1,7 +1,8 @@
 package fenetre;
 
 
-import exchange.CommServer;
+
+import exchange.ModuleCommServer;
 import exchange.User;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -9,6 +10,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -16,7 +23,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import org.zeromq.ZMQ;
 
@@ -32,13 +38,12 @@ import org.zeromq.ZMQ;
  */
 public class Window extends JFrame implements ActionListener {
     
-    private JPanel container = new JPanel();
+    private final JPanel container = new JPanel();
     private JSplitPane panelTop = new JSplitPane();
-    private JPanel panelBottom = new JPanel();
+    private final JPanel panelBottom = new JPanel();
     private JPanel panelRight = new JPanel();
     private JPanel panelLeft = new JPanel();
-    private JTabbedPaneWithCloseIcons onglet = new JTabbedPaneWithCloseIcons();
-    //private JTabbedPane onglet = new JTabbedPane(JTabbedPane.BOTTOM,JTabbedPane.SCROLL_TAB_LAYOUT);
+    //private JTabbedPaneWithCloseIcons tabOnglet = new JTabbedPaneWithCloseIcons();
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menuItem1 = new JMenu("Fichier");
     private JMenu menuItem2 = new JMenu("Edition");
@@ -49,6 +54,9 @@ public class Window extends JFrame implements ActionListener {
     
     private User user = new User("pseudo","mdp","admin");
     private ZMQ.Context context = ZMQ.context(1);
+    private ModuleCommServer commServer;
+    private Map<String , Panneau> listeOnglet = new HashMap<>();
+    private String ongletCurrent;
     
     public Window(){
         //Création de la fenètre
@@ -61,7 +69,7 @@ public class Window extends JFrame implements ActionListener {
         itemNewOnglet.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent event){
-                newTab("Onglet 4",Color.MAGENTA);
+                newTab("Onglet 4");
                 System.out.println("ajout d'un onglet");
             }
         });
@@ -69,22 +77,36 @@ public class Window extends JFrame implements ActionListener {
         this.menuBar.add(menuItem1);
         this.menuBar.add(menuItem2);
         this.setJMenuBar(menuBar);
-        onglet.setTabPlacement(JTabbedPane.BOTTOM);
-        onglet.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        //tabOnglet.setTabPlacement(JTabbedPane.BOTTOM);
+        //tabOnglet.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         initialisation();
         
         //affichage du container et de la fenetre
         this.setContentPane(container);
         this.setVisible(true);
+        
+        //initialisation du module de connexion
+        commServer = new ModuleCommServer("tcp://localhost:22333",context,user);
+        if(commServer.connectServer(user)){
+            (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server etablie");
+            commServer.start();
+        }
+        else {
+            (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server refusé");
+            commServer.close();
+        }
+        
     }
     
     public void initialisation(){
+        
+        
         //Parametrage du Haut
         panelLeft.setBackground(Color.LIGHT_GRAY);
-        newTab("Onglet de test",Color.GREEN);
-        //newTab("Onglet 2",Color.BLUE);
-        //newTab("Onglet 3",Color.ORANGE);
-        panelTop = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelLeft,onglet);
+        panelLeft.setLayout(new BoxLayout(panelLeft, BoxLayout.Y_AXIS));
+        panelRight.setBackground(Color.red);
+        newTab("Onglet de demarrage");
+        panelTop = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelLeft,panelRight);
         panelTop.setOneTouchExpandable(true);
         panelTop.setDividerSize(10);
         panelTop.setDividerLocation(200);
@@ -100,8 +122,8 @@ public class Window extends JFrame implements ActionListener {
         nickname.setForeground(Color.RED);
         nickname.setFont(policeNick);
         nickname.setText(user.getNick());
-        panelBottom.add(nickname);
-        panelBottom.add(textUser);
+        panelBottom.add(nickname, BorderLayout.LINE_START);
+        panelBottom.add(textUser, BorderLayout.CENTER);
         panelBottom.setBackground(Color.DARK_GRAY);
         
         //ajout du haut et du bas a la fenêtre
@@ -112,22 +134,103 @@ public class Window extends JFrame implements ActionListener {
     }
     
     //fonction ajout d'un onglet
-    public void newTab(String title, Color color){
-        Panneau newOnglet = new Panneau(COUNT,title,color,context);
-        onglet.addTab(newOnglet, newOnglet);
+    public void newTab(String title){
+        //tabOnglet.addTab(COUNT, title, context, user);
+        Panneau onglet = new Panneau(COUNT, title, context,user);
+        JButton bouton = new JButton(title);
+        bouton.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent event){
+                ongletCurrent=((JButton) event.getSource()).getText();
+                System.out.println(ongletCurrent);
+                panelRight.removeAll();
+                panelRight.add(listeOnglet.get(ongletCurrent), null);
+                panelRight=listeOnglet.get(ongletCurrent);
+            }
+        });
+        panelLeft.add(bouton);
+        listeOnglet.put(title,onglet);
+        ongletCurrent=title;
+        panelRight.removeAll();
+        panelRight.add(onglet, null);
+        panelRight=onglet;
+        this.validate();
         COUNT++;
     }
     
+    //fonction chagement de pseudo
+    public void changeNickname(String pseudo){
+        nickname.setText(pseudo);
+        user.setNick(pseudo);
+    }
+    
+    public void traitmentEv(String message){
+        (listeOnglet.get(ongletCurrent)).displayTextMessage(message, user.getNick());//affichage du text dans la fenetre
+        commServer.sendMessage(message, user);//traitement et envoi du message au server
+        this.traitmentRv(commServer.parseMessage(commServer.getRetour()));//affichage de la réponse du server
+    }
+    
+    public void traitmentRv(Map<String,String> message){
+        String commande=message.get("command");
+        int argc = Integer.parseInt(message.get("argc"));
+        List<String> args = new ArrayList<>();
+        for(int i = 0; i < argc; i++)
+        {
+            args.add(i, message.get("arg" + i));
+        }
+        
+        
+        switch (commande.toLowerCase())
+        {
+            case "say":
+            {
+                (listeOnglet.get(ongletCurrent)).displayTextMessage(args.get(0), message.get("user"));
+            }
+            break;
+                
+            case "default":
+            {
+            switch (args.get(0))
+            {
+                case "200":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK");
+                    break;
+                case "402":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo(args.get(0));
+                    break;
+                default:
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+args.get(0));
+                    break;
+            }
+                
+            }
+            break;
+                
+            case "connect":
+            {
+                
+            }
+            break;
+                
+            case "message":
+            {
+                
+            }
+            break;
+        }
+                
+    }
 
     
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        Panneau selectPanneau = (Panneau)onglet.getSelectedComponent();
-        selectPanneau.displayTextMessage(textUser.getText(),user);//on affiche le text entré dans la fenetre
-        selectPanneau.comm.send(textUser.getText());//on envoi le message
+        //Panneau ongletSelect = (Panneau) tabOnglet.getSelectedComponent();
+        traitmentEv(textUser.getText());
+        //ongletSelect.traitmentEv(textUser.getText(),user);//envoi du texte saisi et utilisateur pour traitement
         textUser.setText(null);//on vide le champ de texte
-        selectPanneau.displayTextInfo(selectPanneau.comm.getRetour());
         
     }
+    
 }
+

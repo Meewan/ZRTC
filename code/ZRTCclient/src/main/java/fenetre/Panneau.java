@@ -1,11 +1,14 @@
 package fenetre;
 
 
-import exchange.CommServer;
+import exchange.ModuleCommServer;
 import exchange.User;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -31,68 +34,45 @@ import org.zeromq.ZMQ;
 public class Panneau extends JPanel{
     
     private JTextPane textConv = new JTextPane();
-    private int number;//numéro de l'onglet
-    private String title;//titre de l'onglet
-    
-    private Color color;//couleur de l'onglet
     private int position = 0; //position du curseur
+    private String title;//titre de l'onglet
+    private final int NUMBER; //numero de l'onglet
     
-    CommServer comm;
     
     public Panneau(){
-        
+        NUMBER=0;
     }
     
-    public Panneau(int num, String title, Color color, ZMQ.Context context){
-        this.number=num;
-        this.title=title;
+    public Panneau(int count, String title, ZMQ.Context context,User user){
         JScrollPane scroll = new JScrollPane();//création du scroll
-        
         
         scroll.getViewport().add(textConv,null);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);//scroll vertical uniquement quand nécéssaire
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         textConv.setEditable(false);
-        textConv.setBackground(color);
-        
-        this.color = color;
+        textConv.setBackground(Color.GREEN);
         
         //petit astuce pour mettre le scroll en plein écran
         this.add(scroll, null);
         this.setLayout(new GridLayout(1,1));
         this.add(scroll);
         
-        //création du la communication vers le server
-        this.comm=new CommServer("22333",context);
+        
+        NUMBER=count;
+        this.title=title;
+        
+        
     }
-    
-    @Override
-    public String getName(){//retourne le titre de l'onglet
-        return this.title;
-    }
-    
-    public int getNumber(){
-        return this.number;
-    }
-    
-    //@Override
-    //public void paintComponent(Graphics g){
-        //g.setColor(this.color);
-        //g.fillRect(0, 0, this.getWidth(), this.getHeight());
-        //g.setColor(Color.white);
-        //g.setFont(new Font("Arial", Font.BOLD,15));
-        //g.drawString(this.message, 10, 20);
-    //}
     
     //affichage du text dans la page de dialogue sous forme de texte
-    public void displayTextMessage(String text, User user){
+    public void displayTextMessage(String text, String user){
         StyledDocument afficheZone = (StyledDocument)textConv.getDocument();
         try{
             
             java.text.SimpleDateFormat heure = new java.text.SimpleDateFormat("HH:mm:ss");
             String clock = "["+heure.format(new Date())+"]";
             String entre =text+"\n";
-            String nicknam = " <"+user.getNick()+"> : ";
+            String nicknam = " <"+user+"> : ";
             
             //création du style du pseudo
             MutableAttributeSet stylePseudo = new SimpleAttributeSet();
@@ -125,7 +105,17 @@ public class Panneau extends JPanel{
             Logger.getLogger(Panneau.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.position+=message.length();
-        
     }
+    
+    public int getNumber(){
+        return NUMBER;
+    }
+    
+    
+    @Override
+    public String getName(){
+        return title;
+    }
+    
     
 }

@@ -7,9 +7,9 @@
 package fenetre;
 
 
+import exchange.User;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
@@ -22,6 +22,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.plaf.basic.BasicButtonUI;
+import org.zeromq.ZMQ;
 
 /**
  *
@@ -29,14 +30,16 @@ import javax.swing.plaf.basic.BasicButtonUI;
  */
 public class JTabbedPaneWithCloseIcons extends javax.swing.JTabbedPane {
     JTabbedPaneWithCloseIcons moi;
+    
     public JTabbedPaneWithCloseIcons(){
         super();
         moi =this;
     }
     
-    public void addTab(Panneau panneau, Component component) {
-        super.addTab(panneau.getName(), component); //on ajoute une Tab à JTabbedPane
-        super.setTabComponentAt(panneau.getNumber(), new CloseTabPanel(panneau.getName())); //on applique le closeTabPanel a l'element "endroit"
+    public void addTab(int COUNT, String title, ZMQ.Context context, User user) {
+        Panneau onglet = new Panneau(COUNT, title, context,user);
+        super.addTab(onglet.getName(), onglet); //on ajoute une Tab à JTabbedPane
+        super.setTabComponentAt(onglet.getNumber(), new CloseTabPanel(onglet.getName())); //on applique le closeTabPanel a l'element "endroit"
     }
     
     //fonction qui permet d'affiché le bouton close
@@ -44,15 +47,17 @@ public class JTabbedPaneWithCloseIcons extends javax.swing.JTabbedPane {
         ((CloseTabPanel)moi.getTabComponentAt(endroit)).afficheIcon(true);
     }
     
+    
     class CloseTabPanel extends JPanel{
-        JButton button; 
+        JButton button;
+        JLabel title;
  
 	//constructeur sans boolean  qui de base met un bouton close
         public CloseTabPanel(String titre) {
             super(new FlowLayout(FlowLayout.LEFT, 0, 0));
             setOpaque(false);
-            JLabel label = new JLabel(titre);
-            add(label);
+            title = new JLabel(titre);
+            add(title);
             button = new TabButton();
             add(button);
             setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
@@ -67,6 +72,10 @@ public class JTabbedPaneWithCloseIcons extends javax.swing.JTabbedPane {
                 if(this.getComponentCount()>1)
                     this.remove(button);
             }
+        }
+        
+        public void setTitle(String title){
+            this.title.setText(title);
         }
 }
     class TabButton extends JButton implements ActionListener {

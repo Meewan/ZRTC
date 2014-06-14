@@ -20,9 +20,22 @@ public class User {
         this.nickname=nick;
         this.password=passw;
         this.fonction=fonct;
+        this.signature="SIGNATURE";
     }
     
     public String getNick(){
         return this.nickname;
+    }
+    
+    public String getSignature(){
+        return this.signature;
+    }
+    
+    public void setNick(String nickname){
+        this.nickname=nickname;
+    }
+    
+    public void setPass(String password){
+        this.password=password;
     }
 }
