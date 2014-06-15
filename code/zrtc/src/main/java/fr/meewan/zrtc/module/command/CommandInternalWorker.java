@@ -86,18 +86,18 @@ public class CommandInternalWorker extends Thread
             {
                 case "ping":
                 {
-                   CommandExternalWorker external = commandServer.getWaitingCommand(commandId);
-                   if (external != null)
+                   if (commandServer.getWaitingCommand(commandId) != null)
                    {
+                       commandServer.addToActiveExternalConnexions(message.get("user"), commandServer.getWaitingCommand(commandId));
                        commandServer.removeFromWaitingCommands(commandId);
-                       commandServer.addToActiveExternalConnexions(message.get("user"), external);
+                       System.out.println(message.get("user"));
+                       return null;
                    }
                    else 
                    {
                        return null;
                    }
                 }
-                    break;
                 case "connect":
                 {
                     if(!sendToClient(NetworkMessage.generateMessage(commandId, command, message.get("uid"))))
