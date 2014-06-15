@@ -48,7 +48,9 @@ public class CommandExternalWorker extends Thread
         //écoute d'une demande
         rawCommand = socket.recvStr (0);
         //des la reception d'une demande on créé un nouveau worker pour écouter le réseau
-        (new CommandExternalWorker(commandServer, context)).start();
+        CommandExternalWorker next = new CommandExternalWorker(commandServer, context);
+        System.out.println("next");
+        next.start();
         
         //logique de traitement
         Map<String, String> inputMessage = parseMessage(rawCommand);

@@ -66,6 +66,7 @@ public class CommandInternalWorker extends Thread
         boolean correctsignature = message.get("correctsignature")!= null && "true".equals(message.get("correctsignature"));
         String commandId = message.get("commandid");
         int state = Integer.parseInt(message.get("state")) + 1;
+        message.put("state", Integer.toString(state));
         int argc = Integer.parseInt(message.get("argc"));
         List<String> args = new ArrayList<>();
         for(int i = 0; i < argc; i++)
