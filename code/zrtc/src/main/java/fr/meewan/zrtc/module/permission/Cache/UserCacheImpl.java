@@ -250,7 +250,7 @@ public class UserCacheImpl implements UserCache{
         //indique si la personne a entré son password ou non
         private boolean registered = false;
         //flag indiquant si l'utilisateur est l'admin (root) de l'application
-        private final boolean admin;
+        private boolean admin;
 
         public UserObject(String userName, String pgpKey,String adminUser, String adminPassword, Connection connection) throws SQLException 
         {

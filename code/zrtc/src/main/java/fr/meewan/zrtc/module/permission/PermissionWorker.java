@@ -63,7 +63,7 @@ class PermissionWorker extends Thread
                 }
             }
             //on passe le message au suivant
-            message.put("state", ((Integer)(Integer.parseInt(message.get("state") +1))).toString());
+            message.put("state", ((Integer)(Integer.parseInt(message.get("state") )+1)).toString());
             if(Integer.parseInt(message.get("state")) <= Integer.parseInt(message.get("lifecyclestates")))
             {
                sendInNetwork(message);
