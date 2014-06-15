@@ -43,6 +43,7 @@ public class Zrtc {
         ZContext context = new ZContext();
         //on lance un proxy pour pouvoir gérer de nombreuses commandes en parralleles
         Proxy proxy = new Proxy("tcp://*:" + configuration.getPrivateLiseningPort() , INTERNAL_COM_ADRESS, context);
+        proxy.start();
         //on lance les workers qui ferons le travail
         coreWorkers = new ArrayList<>();
         

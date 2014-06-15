@@ -23,7 +23,6 @@ import flexjson.JSONSerializer;
 public class PGPWorker extends Thread
 {
 	private ZContext ctx;
-	private Socket internalOutput;
 	private Socket sck;
 	private Map<String, String> comConfiguration;
 	private String socketBind;
@@ -32,7 +31,6 @@ public class PGPWorker extends Thread
 	public PGPWorker(ZContext ctx, Map<String, String> comConfiguration, String socketBind)
 	{
 		this.ctx = ctx;
-		this.internalOutput = this.ctx.createSocket(ZMQ.PUSH);
 		this.comConfiguration = comConfiguration;
 		this.socketBind = socketBind;
 	}
@@ -120,13 +118,14 @@ public class PGPWorker extends Thread
     
     private void sendInNetwork(Map<String, String> message)
     {
+        ZMQ.Socket speaker = ctx.createSocket(ZMQ.REQ);
         //on se connecte au au suivant pour qu'il complete l'objet
-        String nextAddr = this.comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state"))));
-    	internalOutput.connect(nextAddr);
+        speaker.connect(this.comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
-    	internalOutput.send(new JSONSerializer().serialize(message),0);
+        speaker.send(new JSONSerializer().serialize(message),0);
+        speaker.recv(0);
         //on ferme la connexion (on a pas besoin de sa réponse)
-    	internalOutput.disconnect(this.comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
+        speaker.close();
     }
     
     public void setStop(boolean stop)
@@ -137,7 +136,6 @@ public class PGPWorker extends Thread
     public PGPWorker restart(String socketBind)
     {
     	ctx.destroySocket(sck);
-    	ctx.destroySocket(internalOutput);
     	return new PGPWorker(ctx, comConfiguration, socketBind);
     }
 }

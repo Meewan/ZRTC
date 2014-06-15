@@ -61,6 +61,7 @@ public class OutputServer extends Thread
         
         logger.log(Level.INFO, "démarrage du proxy (output)");
         edgeProxy = new Proxy("tcp://*:" + configuration.getExternalPort(), "inproc://outputProxy", edgeContext);
+        edgeProxy.start();
     	//edgeProxy = new Proxy("tcp://*:" + configuration.getExternalPort(), "tcp://127.0.0.1:5559");
 
         logger.log(Level.INFO, "démarrage des sockets de publication (réseau interne et intra-module) (output)");
@@ -70,8 +71,8 @@ public class OutputServer extends Thread
         internalOutput = coreContext.createSocket(ZMQ.PUSH);
 
         logger.log(Level.INFO, "démarrage du proxy input réseau interne (output)");
-        internalProxy = new Proxy("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),
-        		"inproc://outputWorkers", coreContext);
+        internalProxy = new Proxy("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),"inproc://outputWorkers", coreContext);
+        internalProxy.start();
         
         logger.log(Level.INFO, "démarrage des workers (output)");
         for(int i = 0; i < configuration.getNbWorkers(); i++)
@@ -160,6 +161,7 @@ public class OutputServer extends Thread
     	internalOutput.connect(getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
     	internalOutput.send(new JSONSerializer().serialize(message),0);
+        internalOutput.recv(0);
         //on ferme la connexion (on a pas besoin de sa réponse)
     	internalOutput.disconnect(getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
     }

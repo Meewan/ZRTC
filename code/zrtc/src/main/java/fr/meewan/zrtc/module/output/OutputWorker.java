@@ -16,7 +16,6 @@ import org.zeromq.ZMQ.Socket;
 
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
-import fr.meewan.zrtc.network.Proxy;
 import fr.meewan.zrtc.utils.NetworkMessage;
 
 public class OutputWorker extends Thread

@@ -68,6 +68,8 @@ public class CommandExternalWorker extends Thread
             speaker.connect("tcp://" +commandServer.getConfiguration().getCoreAddress() + ":" + commandServer.getConfiguration().getCorePort());
             //on lui passe le message
             speaker.send(new JSONSerializer().serialize(inputMessage),0);
+            
+            speaker.recv(0);
             //on ferme la connexion (on a pas besoin de sa réponse)
             speaker.close();
 

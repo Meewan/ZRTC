@@ -235,6 +235,7 @@ public class CommandInternalWorker extends Thread
         speaker.connect(commandServer.getComConfiguration().get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
         speaker.send(new JSONSerializer().serialize(message),0);
+        speaker.recv(0);
         //on ferme la connexion (on a pas besoin de sa réponse)
         speaker.close();
     }

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Context;
 
 /**
  *
@@ -51,6 +50,8 @@ public class CoreWorker extends Thread
             String request = socket.recvStr (0);
             socket.send("ok", 0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
+            
+            System.out.println("--------------------------------------------------------------");
             String command = message.get("command") ;
             if( command!= null && !"".equals(command) && commands.containsKey(command.toLowerCase()))
             {
@@ -88,6 +89,7 @@ public class CoreWorker extends Thread
                 speaker.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
                 //on lui passe le message
                 speaker.send(answer,0);
+                speaker.recv(0);
                 //on ferme la connexion (on a pas besoin de sa réponse)
                 speaker.close();
             }

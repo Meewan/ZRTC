@@ -35,7 +35,7 @@ public class Proxy extends Thread
         this.backEndAdress = backEndAdress;
         frontContext = new ZContext();
         backContext = frontContext;
-        this.start();
+        //this.start();
     }
 
     public Proxy(String frontEndAdress, String backEndAdress, ZContext ctx) 
@@ -44,7 +44,7 @@ public class Proxy extends Thread
         this.backEndAdress = backEndAdress;
         frontContext = ctx;
         backContext = ctx;
-        this.start();
+        //this.start();
     }
 
     public Proxy(String frontEndAdress, ZContext ctx1, String backEndAdress, ZContext ctx2) 
@@ -53,7 +53,7 @@ public class Proxy extends Thread
         this.backEndAdress = backEndAdress;
         frontContext = ctx1;
         backContext = ctx2;
-        this.start();
+        //this.start();
     }
     
 

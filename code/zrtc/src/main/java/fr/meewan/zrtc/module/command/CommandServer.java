@@ -53,7 +53,9 @@ public class CommandServer extends Thread
         loadNetworkConfiguration();
         logger.log(Level.INFO, "lancement du proxy pour le serveur de commande");
         Proxy internalProxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAL_COM_ADRESS, context);
+        internalProxy.start();
         Proxy externalProxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort(), EXTERNAL_COM_ADRESS, context);
+        externalProxy.start();
         //on lance le premier thread, c'est qui qui lancera les autres petit a petit
         (new CommandExternalWorker(this, context)).start();
         //on lance les workers internes
