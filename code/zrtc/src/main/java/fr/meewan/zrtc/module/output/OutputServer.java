@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,7 +42,7 @@ public class OutputServer extends Thread
     private Socket publisher;
     private Socket internalInput;
     private Socket internalOutput;
-    private HashMap<String, VirtualClient> clients = new HashMap<>();
+    private Map<String, VirtualClient> clients = new ConcurrentHashMap<>();
     private String msgDelimiter = "#";
     private ArrayList<OutputWorker> workers = new ArrayList<OutputWorker>();
 

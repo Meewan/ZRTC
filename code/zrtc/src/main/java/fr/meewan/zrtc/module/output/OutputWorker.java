@@ -28,10 +28,10 @@ public class OutputWorker extends Thread
 	private Socket socket;
 	private Socket pub;
 	private Socket internalOutput;
-	private HashMap<String, VirtualClient> clients;
+	private Map<String, VirtualClient> clients;
 	private String msgDelimiter;
 	
-	public OutputWorker(ZContext coreContext, ZContext edgeContext, String socketBind, Socket pub, Map<String,String> comConfiguration, HashMap<String, VirtualClient> clients, String msgDelimiter) 
+	public OutputWorker(ZContext coreContext, ZContext edgeContext, String socketBind, Socket pub, Map<String,String> comConfiguration, Map<String, VirtualClient> clients, String msgDelimiter) 
 	{
 	   this.coreContext = coreContext;
 	   this.edgeContext = edgeContext;
