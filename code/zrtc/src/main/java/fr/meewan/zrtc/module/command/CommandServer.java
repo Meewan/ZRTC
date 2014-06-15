@@ -69,7 +69,11 @@ public class CommandServer extends Thread
             }
         }
         //on lance le premier thread, c'est qui qui lancera les autres petit a petit
-        (new CommandExternalWorker(this, context)).start();
+        for(int i = 0; i < configuration.getMaxWorkers(); i++)
+        {
+            (new CommandExternalWorker(this, context)).start();
+        }
+        
         //on lance les workers internes
         internalWorkers = new ArrayList<>();
         for(int i = 0; i < configuration.getMaxWorkers(); i++)
