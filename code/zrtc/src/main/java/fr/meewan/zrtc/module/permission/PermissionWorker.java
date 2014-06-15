@@ -56,6 +56,7 @@ class PermissionWorker extends Thread
                 if(!message.get("command").toLowerCase().equals("connect"))
                 {
                     message.put("pgpkey", permissionServer.getUserCache().getPgpKey(message.get("user")));
+                    message.put("uid", permissionServer.getUserCache().getUid(message.get("user")));
                 }
                 else
                 {
