@@ -168,7 +168,7 @@ public class CommandServer extends Thread
     
     public void addToWaitingCommands(String commandId, CommandExternalWorker externalConnexion)
     {
-        this.activeExternalConnexions.put(commandId, externalConnexion);
+        this.waitingCommands.put(commandId, externalConnexion);
     }
     public void removeFromWaitingCommands(String clientName)
     {
