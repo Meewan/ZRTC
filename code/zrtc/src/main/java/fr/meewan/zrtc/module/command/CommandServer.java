@@ -56,6 +56,17 @@ public class CommandServer extends Thread
         internalProxy.start();
         Proxy externalProxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort(), EXTERNAL_COM_ADRESS, context);
         externalProxy.start();
+        synchronized(this)
+        {
+            try 
+            {
+                this.wait(500);
+            }
+            catch (InterruptedException ex) 
+            {
+                Logger.getLogger(CommandServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         //on lance le premier thread, c'est qui qui lancera les autres petit a petit
         (new CommandExternalWorker(this, context)).start();
         //on lance les workers internes
