@@ -47,7 +47,6 @@ public class CommandExternalWorker extends Thread
         socket.connect (commandServer.EXTERNAL_COM_ADRESS);
         //écoute d'une demande
         rawCommand = socket.recvStr (0);
-        System.out.println("un user s'est connecté");
         //des la reception d'une demande on créé un nouveau worker pour écouter le réseau
         (new CommandExternalWorker(commandServer, context)).start();
         

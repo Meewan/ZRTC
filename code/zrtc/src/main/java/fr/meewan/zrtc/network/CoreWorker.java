@@ -51,7 +51,6 @@ public class CoreWorker extends Thread
             socket.send("ok", 0);
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize( request );
             
-            System.out.println("--------------------------------------------------------------");
             String command = message.get("command") ;
             if( command!= null && !"".equals(command) && commands.containsKey(command.toLowerCase()))
             {
