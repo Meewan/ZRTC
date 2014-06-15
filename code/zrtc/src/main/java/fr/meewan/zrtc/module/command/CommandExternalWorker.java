@@ -52,7 +52,6 @@ public class CommandExternalWorker extends Thread
         
         //logique de traitement
         Map<String, String> inputMessage = parseMessage(rawCommand);
-        generateCommandId(inputMessage.get("user"));
         //on enregistre la connexion aupres du server
         commandServer.addToWaitingCommands(commandId, this);
         int errCode = messageValid(inputMessage);
@@ -136,6 +135,8 @@ public class CommandExternalWorker extends Thread
         message.put("commandraw", rawMessage.substring(0, rawMessage.lastIndexOf(this.DELIMITER)));
         //signature du clilent
         message.put("signature", tmp[tmp.length - 1]);
+        generateCommandId(message.get("user"));
+        message.put("commandid", this.commandId);
         return message;
     }
     
