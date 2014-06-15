@@ -56,6 +56,7 @@ public class CommandServer extends Thread
         internalProxy.start();
         Proxy externalProxy = new Proxy("tcp://*:" + configuration.getPublicListeningPort(), EXTERNAL_COM_ADRESS, context);
         externalProxy.start();
+        //on laisse le temps au proxy de démarer
         synchronized(this)
         {
             try 

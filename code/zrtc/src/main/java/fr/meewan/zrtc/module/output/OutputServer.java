@@ -73,6 +73,18 @@ public class OutputServer extends Thread
         logger.log(Level.INFO, "démarrage du proxy input réseau interne (output)");
         internalProxy = new Proxy("tcp://" + configuration.getCoreAddress() + ":" + configuration.getCorePort(),"inproc://outputWorkers", coreContext);
         internalProxy.start();
+        //on laisse le temps au proxy de démarer
+        synchronized(this)
+        {
+            try 
+            {
+                this.wait(500);
+            }
+            catch (InterruptedException ex) 
+            {
+                Logger.getLogger(OutputServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         
         logger.log(Level.INFO, "démarrage des workers (output)");
         for(int i = 0; i < configuration.getNbWorkers(); i++)

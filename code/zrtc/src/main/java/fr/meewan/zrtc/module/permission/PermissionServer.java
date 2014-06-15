@@ -85,6 +85,18 @@ public class PermissionServer extends Thread
         logger.log(Level.INFO, "Lancement du proxy pour les workers");
         proxy = new Proxy("tcp://*:" + configuration.getListeningPort(), INTERNAl_COM_ADRESS, context);
         proxy.start();
+        //on laisse le temps au proxy de démarer
+        synchronized(this)
+        {
+            try 
+            {
+                this.wait(500);
+            }
+            catch (InterruptedException ex) 
+            {
+                Logger.getLogger(PermissionServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         logger.log(Level.INFO, "verification des commandes enregistré en base");
         checkCommandInBase(connection);
         
