@@ -91,7 +91,6 @@ public class CommandInternalWorker extends Thread
                    {
                        commandServer.addToActiveExternalConnexions(message.get("user"), commandServer.getWaitingCommand(commandId));
                        commandServer.removeFromWaitingCommands(commandId);
-                       System.out.println(message.get("user"));
                        return null;
                    }
                    else 
