@@ -26,8 +26,9 @@ public class ModuleCommServer extends Thread{
     private final ZMQ.Context context;
     private ZMQ.Socket echange;
     private final String adresse;
-    private String cleUID;
+    private String pgpKey;
     private User user;
+    private boolean stop=false;
     
     private String retour;
     
@@ -40,14 +41,12 @@ public class ModuleCommServer extends Thread{
         requester = context.socket(ZMQ.REQ);
         requester.connect(adresse);
         
-        //ZMQ.Socket test = context.socket(ZMQ.PULL);
-        //test.setIdentity("id".getBytes());
         
     }
     
     public void sendMessage(String message, User user){
         message = buildMessage(message);
-        String messageFinal=encode(user.getNick())+message+"SIGNATURE";
+        String messageFinal=encode(user.getNick())+message+encode("SIGNATURE");
         System.out.println("envoi au server :"+messageFinal);
         requester.send(messageFinal.getBytes(),0);
         
@@ -60,6 +59,14 @@ public class ModuleCommServer extends Thread{
         return this.retour;
     }
     
+    public String getPgpKey(){
+        return pgpKey;
+    }
+    
+    public String getAdresse(){
+        return adresse;
+    }
+    
     
     public String encode(String message){
         String finalMessage="";
@@ -69,13 +76,19 @@ public class ModuleCommServer extends Thread{
         return finalMessage;
     }
     
+    public String decode(String message){
+        String finalMessage="";
+        finalMessage = new String(DatatypeConverter.parseBase64Binary(message));
+        return finalMessage;
+    }
+    
     //création du message de commande a envoyer
     public String buildMessage(String message){
         String messageRetour="";
         String listCommande[] = {"CONNECT","REGISTER","IDENTIFY","NICK","QUIT","MODE","JOIN","PART","MESSAGE"};//liste des commandes possible
         //on verifie si c'est une commande
-        System.out.println(message);
-        if(message.charAt(0)=='/'){//on verifie si on commance par un /
+        System.out.println("le message a envoyer est : "+message);
+        if(message.charAt(0)=='/'){//on verifie si on commance par un '/'
             boolean noCommande=true;
             
             message=message.substring(1);//on enlève le /
@@ -111,7 +124,7 @@ public class ModuleCommServer extends Thread{
     
     public Map<String,String> parseMessage(String rawMessage){
         Map<String,String> message = new HashMap<>();
-        //prasing du message
+        //parsing du message
         String[] tmp = rawMessage.split(this.msgDelimiter);
         message.put("user", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
@@ -139,7 +152,9 @@ public class ModuleCommServer extends Thread{
         echange.connect(adresse);
         
         //on envoi la demande de connexion
-        String message = encode(user.getNick())+encode("CONNECT")+encode(user.getPgpKey())+encode(user.getSignature());
+        System.out.println("Demande de connexion au server");
+        System.out.println("Envoi au server :"+user.getNick()+"#CONNECT#"+user.getPgpKey()+"#"+user.getSignature());
+        String message = encode(user.getNick())+encode("CONNECT")+encode(user.getPgpKey())+encode(user.getSignature());//CLE ENCODE POUR TEST
         echange.send(message.getBytes(),0);
         
         //on attend la réponse du server
@@ -153,9 +168,10 @@ public class ModuleCommServer extends Thread{
         }
         System.out.println("");
         
+        //recupération de la clee
         if(tmp[0].equals("CONNECT")){
-            cleUID=tmp[1];
-            System.out.println("Connexion au server OK, cleUID = " +cleUID);
+            pgpKey=tmp[1];
+            System.out.println("Connexion au server OK, cleUID = " +pgpKey);
             return true;
         }
         else{
@@ -165,21 +181,21 @@ public class ModuleCommServer extends Thread{
     }
     
     public void close(){
+        stop=true;
         echange.close();
         requester.close();
     }
     
     
-    
     @Override
     public void run(){
         
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!stop) {
             
-            String message =encode(user.getNick())+encode("PING")+user.getSignature();
-            
+            String message =encode(user.getNick())+encode("PING")+encode(user.getSignature());
             echange.send(message.getBytes(),0);
         
+            
             byte[] reply = echange.recv(0);
             String infoServer = new String(reply);
             System.out.println("Received " + infoServer);
@@ -189,10 +205,7 @@ public class ModuleCommServer extends Thread{
                 Logger.getLogger(ModuleCommServer.class.getName()).log(Level.SEVERE, null, ex);
             }
             
-            
-            
         }
-        
         
     }
     

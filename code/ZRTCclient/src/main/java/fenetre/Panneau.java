@@ -1,14 +1,10 @@
 package fenetre;
 
 
-import exchange.ModuleCommServer;
 import exchange.User;
 import java.awt.Color;
 import java.awt.GridLayout;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
@@ -36,21 +32,19 @@ public class Panneau extends JPanel{
     private JTextPane textConv = new JTextPane();
     private int position = 0; //position du curseur
     private String title;//titre de l'onglet
-    private final int NUMBER; //numero de l'onglet
     
     
     public Panneau(){
-        NUMBER=0;
     }
     
-    public Panneau(int count, String title, ZMQ.Context context,User user){
+    public Panneau(String title, ZMQ.Context context,User user){
         JScrollPane scroll = new JScrollPane();//création du scroll
         
         scroll.getViewport().add(textConv,null);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);//scroll vertical uniquement quand nécéssaire
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         textConv.setEditable(false);
-        textConv.setBackground(Color.GREEN);
+        textConv.setBackground(Color.WHITE);
         
         //petit astuce pour mettre le scroll en plein écran
         this.add(scroll, null);
@@ -58,7 +52,6 @@ public class Panneau extends JPanel{
         this.add(scroll);
         
         
-        NUMBER=count;
         this.title=title;
         
         
@@ -105,10 +98,6 @@ public class Panneau extends JPanel{
             Logger.getLogger(Panneau.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.position+=message.length();
-    }
-    
-    public int getNumber(){
-        return NUMBER;
     }
     
     

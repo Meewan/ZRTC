@@ -22,7 +22,7 @@ public class User {
         this.password=passw;
         this.fonction=fonct;
         this.signature="SIGNATURE";
-        this.pgpKey = "pgpKey";
+        this.pgpKey="pgpKey";
     }
     
     public String getNick(){
@@ -41,7 +41,7 @@ public class User {
         this.password=password;
     }
     
-    public String getPgpKey() {
+    public String getPgpKey(){
         return pgpKey;
     }
 }

@@ -5,6 +5,7 @@ package fenetre;
 import exchange.ModuleCommServer;
 import exchange.User;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -25,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -43,20 +45,20 @@ public class Window extends JFrame implements ActionListener {
     private final JPanel panelBottom = new JPanel();
     private JPanel panelRight = new JPanel();
     private JPanel panelLeft = new JPanel();
-    //private JTabbedPaneWithCloseIcons tabOnglet = new JTabbedPaneWithCloseIcons();
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menuItem1 = new JMenu("Fichier");
     private JMenu menuItem2 = new JMenu("Edition");
     private JMenuItem itemNewOnglet = new JMenuItem("Nouvel onglet");
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
-    private int COUNT=0;
     
     private User user = new User("pseudo","mdp","admin");
     private ZMQ.Context context = ZMQ.context(1);
     private ModuleCommServer commServer;
     private Map<String , Panneau> listeOnglet = new HashMap<>();
     private String ongletCurrent;
+    public CardLayout card = new CardLayout(0,0);
+    private boolean stop=false;
     
     public Window(){
         //Création de la fenètre
@@ -90,10 +92,11 @@ public class Window extends JFrame implements ActionListener {
         if(commServer.connectServer(user)){
             (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server etablie");
             commServer.start();
+            new ModuleReceptionServer().start();
         }
         else {
             (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server refusé");
-            commServer.close();
+            stop=true;
         }
         
     }
@@ -105,7 +108,11 @@ public class Window extends JFrame implements ActionListener {
         panelLeft.setBackground(Color.LIGHT_GRAY);
         panelLeft.setLayout(new BoxLayout(panelLeft, BoxLayout.Y_AXIS));
         panelRight.setBackground(Color.red);
-        newTab("Onglet de demarrage");
+        setContentPane(panelRight);
+        panelRight.setLayout(card);
+        
+        
+        newTab("Demarrage");
         panelTop = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelLeft,panelRight);
         panelTop.setOneTouchExpandable(true);
         panelTop.setDividerSize(10);
@@ -135,28 +142,26 @@ public class Window extends JFrame implements ActionListener {
     
     //fonction ajout d'un onglet
     public void newTab(String title){
-        //tabOnglet.addTab(COUNT, title, context, user);
-        Panneau onglet = new Panneau(COUNT, title, context,user);
+        Panneau onglet = new Panneau(title, context,user);
         JButton bouton = new JButton(title);
-        bouton.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent event){
-                ongletCurrent=((JButton) event.getSource()).getText();
-                System.out.println(ongletCurrent);
-                panelRight.removeAll();
-                panelRight.add(listeOnglet.get(ongletCurrent), null);
-                panelRight=listeOnglet.get(ongletCurrent);
-            }
-        });
+        bouton.addActionListener(new OngletListener());
         panelLeft.add(bouton);
-        listeOnglet.put(title,onglet);
+        listeOnglet.put(title,onglet);//ajout de l'onglet dans la map d'onglet
         ongletCurrent=title;
-        panelRight.removeAll();
-        panelRight.add(onglet, null);
-        panelRight=onglet;
-        this.validate();
-        COUNT++;
+        
+        panelRight.add(onglet ,title);
+        
+        card.show(panelRight, title);
     }
+    
+    //fonction suppression d'un onglet ******A FINIR******
+    public void removeTab(String title){
+        panelRight.remove(this);//enlever le bouton de la liste des boutons
+        listeOnglet.remove(title);
+        repaint();
+    }
+    
+    
     
     //fonction chagement de pseudo
     public void changeNickname(String pseudo){
@@ -179,12 +184,16 @@ public class Window extends JFrame implements ActionListener {
             args.add(i, message.get("arg" + i));
         }
         
+        //on verifie que le cannal demande existe bien deja
+        if (!(commande.toLowerCase()).equals("message")&&!listeOnglet.containsKey(args.get(0))){
+            
+        }
         
         switch (commande.toLowerCase())
         {
             case "say":
             {
-                (listeOnglet.get(ongletCurrent)).displayTextMessage(args.get(0), message.get("user"));
+                (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), message.get("user"));
             }
             break;
                 
@@ -214,7 +223,34 @@ public class Window extends JFrame implements ActionListener {
                 
             case "message":
             {
+                if(listeOnglet.containsKey(args.get(0)))
+                {
+                    (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
+                }
+                else
+                {
+                    newTab(args.get(0));
+                    (listeOnglet.get(args.get(0))).displayTextInfo("Conversation privé avec "+args.get(0));
+                    (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
+                }
+            }
+            break;
                 
+            case "mode":
+            {
+                
+            }
+            break;
+                
+            case "join":
+            {
+                (listeOnglet.get(args.get(0))).displayTextInfo(message.get("user")+" a rejoin le canal.");
+            }
+            break;
+                
+            case "part":
+            {
+                (listeOnglet.get(args.get(0))).displayTextInfo(message.get("user")+" a quitter le canal.");
             }
             break;
         }
@@ -225,11 +261,43 @@ public class Window extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        //Panneau ongletSelect = (Panneau) tabOnglet.getSelectedComponent();
         traitmentEv(textUser.getText());
-        //ongletSelect.traitmentEv(textUser.getText(),user);//envoi du texte saisi et utilisateur pour traitement
         textUser.setText(null);//on vide le champ de texte
         
+    }
+    
+    class OngletListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent event){
+            ongletCurrent=((JButton) event.getSource()).getText();
+            System.out.println(ongletCurrent);
+            card.show(panelRight,ongletCurrent);
+        }
+    }
+    
+    class ModuleReceptionServer extends Thread{
+        private ZMQ.Socket reception;
+        
+        @Override
+        public void run(){
+        reception = context.socket(ZMQ.PULL);
+        reception.setIdentity(commServer.getPgpKey().getBytes());
+        reception.connect(commServer.getAdresse());
+        
+        while(!stop){
+            ZMsg msg = ZMsg.recvMsg(reception);
+            Map<String,String>  msgMap;
+            if(msg.size()!=2) System.out.println("ZMsg trop long ou trop court");
+            System.out.println("Recu frame1: "+ new String(msg.getFirst().getData()));
+            System.out.println("Recu frame2: "+ new String(msg.getLast().getData()));
+            msgMap=commServer.parseMessage(new String(msg.getLast().getData()));
+            msgMap.put("cible", new String(msg.getFirst().getData()));
+            traitmentRv(msgMap);
+        }
+        reception.close();
+        commServer.close();
+        
+    }
     }
     
 }
