@@ -46,7 +46,7 @@ public class CommandInternalWorker extends Thread
             Map<String,String> message = new JSONDeserializer<HashMap>().deserialize(rawMessage);
             socket.send("ok", 0);
             message = execute(message);
-            if(message != null && Integer.parseInt(message.get("state")) <= Integer.parseInt(message.get("lifecyclestates")))
+            if(message != null && Integer.parseInt(message.get("state")) < Integer.parseInt(message.get("lifecyclestates")))
             {
                sendInNetwork(message);
             }
