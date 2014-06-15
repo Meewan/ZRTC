@@ -52,7 +52,7 @@ public class OutputWorker extends Thread
 	    while(!stop)
 	    {
 	    	ZMsg msg = ZMsg.recvMsg(socket);
-	    	socket.send("");
+	    	socket.send("ok");
 	    	
 	    	if(msg.size() == 1)
 	    	{
@@ -62,7 +62,14 @@ public class OutputWorker extends Thread
 	    		{
 	    			execute(msgMap);
 	    		}
-	    		sendInNetwork(msgMap);
+	    		//gestion du cycle de vie
+                        Integer state = Integer.parseInt(msgMap.get("state"));
+                        state ++;
+                        msgMap.put("state", state.toString());
+                        if(state <= Integer.parseInt(msgMap.get("lifecyclestates")))
+                        {
+                            sendInNetwork(msgMap);
+                        }
 	    	}
 	    }
 	    
@@ -82,7 +89,7 @@ public class OutputWorker extends Thread
         String commandId = message.get("commandid");
         String user = message.get("user");
         // En attendant la vrai variable
-        String uId = user;
+        String uId = message.get("uid");
         // Nécessaire pour la commande nick??
         String oldUser = user;
         int state = Integer.parseInt(message.get("state")) + 1;
@@ -234,6 +241,7 @@ public class OutputWorker extends Thread
     	internalOutput.connect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
         //on lui passe le message
     	internalOutput.send(new JSONSerializer().serialize(message),0);
+        internalOutput.recv();
         //on ferme la connexion (on a pas besoin de sa réponse)
     	internalOutput.disconnect(comConfiguration.get(message.get("lifecycle" + Integer.parseInt(message.get("state")))));
     }
