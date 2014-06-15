@@ -257,6 +257,7 @@ public class UserCacheImpl implements UserCache{
             this.uid = genrateUid(userName);
             this.pgpKey = pgpKey;
             chans = new CopyOnWriteArrayList<>();
+            rightMap = new ConcurrentHashMap<>();
             if(userName.equals(adminUser))//cas particulier ou l'administrateur (root) se connecte
             {
                 admin = true;
@@ -291,7 +292,6 @@ public class UserCacheImpl implements UserCache{
                 preparedStatement = connection.prepareStatement("SELECT lrc.command_label, c.chan, ur.right FROM user_right AS ur, chan AS c, user AS u, list_ref_command as lrc WHERE u.user = ? AND u.user_id=ur.user_id AND c.chan_id=ur.chan_id AND lrc.command_id=ur.command_id");
                 preparedStatement.setString(1, userName);
                 rs = preparedStatement.executeQuery();
-                rightMap = new ConcurrentHashMap<>();
                 while(rs.next())
                 {
                     String command = rs.getString("command_label");
