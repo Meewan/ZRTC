@@ -116,7 +116,7 @@ public class CommandInternalWorker extends Thread
                     break;
                 case "join":
                 {
-                    if(!sendToClient(NetworkMessage.generatePingMessage(commandId)))
+                    if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
                     {
                         return null;
                     }
