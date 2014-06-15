@@ -98,9 +98,8 @@ public class CommandExternalWorker extends Thread
             }
             else// si on a le droit de le faire
             {
-                logic = new CommandLogic(message);
                 String answerMessage = logic.encode();
-                socket.send(answerMessage.getBytes(), 0);
+                socket.send(answerMessage, 0);
             }
            
         }
