@@ -35,6 +35,11 @@ public class ModuleCommandeServer {
         requester.connect(adresse);
 }
     
+    /*fonction envoi un message au server 
+    message : message a envoyer
+    user : utilisateur
+    cible: chan de depart=destination
+    */
     public void sendMessage(String message, User user, String cible){
         message = buildMessage(message,cible);
         String messageFinal=outils.encode(user.getNick())+message+outils.encode("SIGNATURE");
@@ -47,6 +52,12 @@ public class ModuleCommandeServer {
         System.out.println("Received " + retour);
     }
     
+    /*
+    fonction de création du message
+    recherche si c'est une commande
+    commande->creation d'argument
+    no commande -> say message
+    */
     public String buildMessage(String message, String cible){
         String messageRetour="";
         //on verifie si c'est une commande

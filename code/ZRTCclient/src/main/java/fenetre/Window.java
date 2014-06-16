@@ -54,7 +54,7 @@ public class Window extends JFrame implements ActionListener {
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
-    private User user = new User("pseud","mdp","admin");
+    private User user = new User("pseudo","mdp","admin");
     private ZMQ.Context context = ZMQ.context(1);
     private ModuleConnexionServer connexionServer;
     private ModuleCommandeServer commandeServer;
@@ -146,7 +146,7 @@ public class Window extends JFrame implements ActionListener {
     
     //fonction ajout d'un onglet
     public void newTab(String title){
-        Panneau onglet = new Panneau(title, context,user);
+        Panneau onglet = new Panneau(context,user);
         JButton bouton = new JButton(title);
         bouton.addActionListener(new OngletListener());
         panelLeft.add(bouton);
@@ -173,13 +173,20 @@ public class Window extends JFrame implements ActionListener {
         user.setNick(pseudo);
     }
     
+    /*
+    fonction de traitement d'un envoi de commande au server
+    affiche, envoi et appel la fonction de traitement
+    */
     public void traitmentEv(String message){
         (listeOnglet.get(ongletCurrent)).displayTextMessage(message, user.getNick());//affichage du text dans la fenetre
         commandeServer.sendMessage(message, user, ongletCurrent);//traitement et envoi du message au server
         this.traitementRetourServer(commandeServer.parseCommandeServer(commandeServer.getRetour()));//affichage de la réponse du server
     }
     
-    
+    /*
+    fonction de traitement
+    recupère la fonction traite la demande et affiche le message
+    */
     public void traitementRetourServer(Map<String,String> message){
         String retour=message.get("retour").toLowerCase();
         String commande=message.get("command");
@@ -271,6 +278,8 @@ public class Window extends JFrame implements ActionListener {
         }
         
     }
+    
+    //***en construction*** fait doublon avec la précédente
     public void traitmentRv(Map<String,String> message){
         String commande=message.get("command");
         int argc = Integer.parseInt(message.get("argc"));
@@ -354,7 +363,7 @@ public class Window extends JFrame implements ActionListener {
                 
     }
 
-    
+    //action appelé quand on appuie sur enter dans le champ de text
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -363,6 +372,7 @@ public class Window extends JFrame implements ActionListener {
         
     }
     
+    //action appelé quand on clique sur un bouton, permet d'afficher un autre chan
     class OngletListener implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent event){
@@ -372,6 +382,7 @@ public class Window extends JFrame implements ActionListener {
         }
     }
     
+    //class qui écoute le server et attend les messages
     class ModuleReceptionServer extends Thread{
         private ZMQ.Socket reception;
         private Outils outils;

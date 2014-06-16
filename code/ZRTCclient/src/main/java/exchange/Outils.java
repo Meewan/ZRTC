@@ -14,11 +14,15 @@ import javax.xml.bind.DatatypeConverter;
  *
  * @author Gauthier
  */
+
+// class pour effectuer les encodeges et decodage de message
+
 public class Outils {
     private final String msgDelimiter="#";
     
     
-        public String encode(String message){
+    //encode le message en base64
+    public String encode(String message){
         String finalMessage="";
         finalMessage += DatatypeConverter.printBase64Binary(message.getBytes());
         finalMessage += msgDelimiter;
@@ -26,13 +30,15 @@ public class Outils {
         return finalMessage;
     }
     
+     //decode le message de base64 vers string
     public String decode(String message){
         String finalMessage;
         finalMessage = new String(DatatypeConverter.parseBase64Binary(message));
         return finalMessage;
     }
     
-        public Map<String,String> parseMessage(String rawMessage){
+    //decode le message de base64 en map 'user''commande''arg1''argc'..
+    public Map<String,String> parseMessage(String rawMessage){
         Map<String,String> message = new HashMap<>();
         //parsing du message
         String[] tmp = rawMessage.split(this.msgDelimiter);

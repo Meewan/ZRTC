@@ -1,8 +1,6 @@
 package exchange;
 
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
@@ -20,7 +18,6 @@ import org.zeromq.ZMQ;
  */
 public class ModuleConnexionServer extends Thread{
     
-    //private String message;
     private final String msgDelimiter = "#";
     private final ZMQ.Context context;
     private ZMQ.Socket echange;
@@ -36,9 +33,6 @@ public class ModuleConnexionServer extends Thread{
         this.context=context;
         this.adresse=adresse;
         System.out.println("connexion au server a l'adresse :"+adresse );
-
-        
-        
     }
     
     public String getPgpKey(){
@@ -50,13 +44,12 @@ public class ModuleConnexionServer extends Thread{
     }
     
     
-    //création du message de commande a envoyer
-    
-    
-
-    
-    
-    //fonction de connexion au server
+    /*fonction de connexion au server
+    envoi CONNECT au server
+    attent en retour la cleePGP
+    connection ok ->return true
+    no connexion -> return false
+    */
     public boolean connectServer(User user){
         echange = context.socket(ZMQ.REQ);
         echange.connect(adresse);
@@ -72,6 +65,7 @@ public class ModuleConnexionServer extends Thread{
         String repServer = new String(reply);
         String[] tmp = repServer.split(this.msgDelimiter);
         System.out.print("Received : ");
+        //affichage de la reception pour control
         for(int i=0;i<tmp.length;i++){
             tmp[i]=new String (DatatypeConverter.parseBase64Binary(tmp[i]));
             System.out.print(tmp[i]+" ");
@@ -95,7 +89,9 @@ public class ModuleConnexionServer extends Thread{
         echange.close();
     }
     
-    
+    /*
+    thrade de connexion au server envoi PING a chaque réponse server
+    */
     @Override
     public void run(){
         

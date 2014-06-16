@@ -31,13 +31,12 @@ public class Panneau extends JPanel{
     
     private JTextPane textConv = new JTextPane();
     private int position = 0; //position du curseur
-    private String title;//titre de l'onglet
     
     
     public Panneau(){
     }
     
-    public Panneau(String title, ZMQ.Context context,User user){
+    public Panneau(ZMQ.Context context,User user){
         JScrollPane scroll = new JScrollPane();//création du scroll
         
         scroll.getViewport().add(textConv,null);
@@ -51,8 +50,6 @@ public class Panneau extends JPanel{
         this.setLayout(new GridLayout(1,1));
         this.add(scroll);
         
-        
-        this.title=title;
         
         
     }
@@ -83,7 +80,7 @@ public class Panneau extends JPanel{
         
     }
     
-    //affichage de text simple dans la fenetre
+    //affichage de text simple dans la fenetre, message d'info
     public void displayTextInfo(String message){
         StyledDocument afficheZone = (StyledDocument)textConv.getDocument();
         //création du style
@@ -100,11 +97,6 @@ public class Panneau extends JPanel{
         this.position+=message.length();
     }
     
-    
-    @Override
-    public String getName(){
-        return title;
-    }
     
     
 }
