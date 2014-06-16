@@ -279,6 +279,24 @@ public class Window extends JFrame implements ActionListener {
                 
             }
             break;
+                
+            case "nick":
+            {
+                switch (codeErreur)
+                {
+                    case "200":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous pseudo est maintenant :"+args.get(0));
+                        changeNickname(args.get(0));
+                    break;
+                    case "402":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur :"+codeErreur);
+                    break;
+                    default:
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    break;
+                }
+            }
+            break;
         }
         
     }
@@ -300,9 +318,9 @@ public class Window extends JFrame implements ActionListener {
         
         switch (commande.toLowerCase())
         {
-            case "say":
+            case "message":
             {
-                (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), message.get("user"));
+                (listeOnglet.get("cible")).displayTextMessage(args.get(0), message.get("user"));
             }
             break;
                 
@@ -330,7 +348,7 @@ public class Window extends JFrame implements ActionListener {
             }
             break;
                 
-            case "message":
+            case "message2":
             {
                 if(listeOnglet.containsKey(args.get(0)))
                 {
@@ -389,12 +407,12 @@ public class Window extends JFrame implements ActionListener {
     //class qui écoute le server et attend les messages
     class ModuleReceptionServer extends Thread{
         private ZMQ.Socket reception;
-        private Outils outils=new Outils();
+        private Outils outils= new Outils();
         @Override
         public void run(){
-            System.out.println("lancement du module de reception cle :"+connexionServer.getPgpKey());
+            System.out.println("lancement du module de reception cle :"+connexionServer.getUidKey());
         reception = context.socket(ZMQ.PULL);
-        reception.setIdentity(connexionServer.getPgpKey().getBytes());
+        reception.setIdentity(connexionServer.getUidKey().getBytes());
         reception.connect("tcp://localhost:5555");
         
         while(!stop){
