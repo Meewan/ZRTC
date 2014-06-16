@@ -22,7 +22,7 @@ public class ModuleConnexionServer extends Thread{
     private final ZMQ.Context context;
     private ZMQ.Socket echange;
     private final String adresse;
-    private String pgpKey;
+    private String uidKey;
     private User user;
     private boolean stop=false;
     private final Outils outils=new Outils();
@@ -35,8 +35,8 @@ public class ModuleConnexionServer extends Thread{
         System.out.println("connexion au server a l'adresse :"+adresse );
     }
     
-    public String getPgpKey(){
-        return pgpKey;
+    public String getUidKey(){
+        return uidKey;
     }
     
     public String getAdresse(){
@@ -74,8 +74,8 @@ public class ModuleConnexionServer extends Thread{
         
         //recupération de la clee
         if(tmp[0].equals("CONNECT")){
-            pgpKey=tmp[1];
-            System.out.println("Connexion au server OK, cleUID = " +pgpKey);
+            uidKey=tmp[1];
+            System.out.println("Connexion au server OK, cleUID = " +uidKey);
             return true;
         }
         else{
