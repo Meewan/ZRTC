@@ -182,7 +182,6 @@ public class Window extends JFrame implements ActionListener {
     affiche, envoi et appel la fonction de traitement
     */
     public void traitmentEv(String message){
-        (listeOnglet.get(ongletCurrent)).displayTextMessage(message, user.getNick());//affichage du text dans la fenetre
         commandeServer.sendMessage(message, user, ongletCurrent);//traitement et envoi du message au server
         this.traitementRetourServer(commandeServer.parseCommandeServer(commandeServer.getRetour()));//affichage de la réponse du server
     }
@@ -242,9 +241,23 @@ public class Window extends JFrame implements ActionListener {
             }
             break;
                 
-            case "connect":
+            case "quit":
             {
-                
+                switch (codeErreur)
+                {
+                case "200":
+                    card.show(panelRight, ongletCurrent);
+                    removeTab(args.get(0));
+                    
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoin le chan "+args.get(0));
+                break;
+                case "402":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo(codeErreur);
+                break;
+                default:
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                break;
+                }
             }
             break;
                 
@@ -325,61 +338,16 @@ public class Window extends JFrame implements ActionListener {
             }
             break;
                 
-            case "default":
-            {
-            switch (args.get(0))
-            {
-                case "200":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK");
-                    break;
-                case "402":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo(args.get(0));
-                    break;
-                default:
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+args.get(0));
-                    break;
-            }
-                
-            }
-            break;
-                
             case "connect":
             {
                 
             }
             break;
+
                 
-            case "message2":
+            case "info":
             {
-                if(listeOnglet.containsKey(args.get(0)))
-                {
-                    (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
-                }
-                else
-                {
-                    newTab(args.get(0));
-                    (listeOnglet.get(args.get(0))).displayTextInfo("Conversation privé avec "+args.get(0));
-                    (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
-                }
-            }
-            break;
-                
-            case "mode":
-            {
-                
-            }
-            break;
-                
-            case "join":
-            {
-                newTab(args.get(0));
-                (listeOnglet.get(args.get(0))).displayTextInfo(message.get("user")+" a rejoin le canal.");
-            }
-            break;
-                
-            case "part":
-            {
-                (listeOnglet.get(args.get(0))).displayTextInfo(message.get("user")+" a quitter le canal.");
+                (listeOnglet.get(message.get("cible"))).displayTextInfo(args.get(0));
             }
             break;
         }

@@ -65,21 +65,25 @@ public class ModuleCommandeServer {
         if(message.charAt(0)=='/'){//on verifie si on commance par un '/'
             message=message.substring(1);//on enlève le /
             String arglist[]=message.split(" ");//création d'un tableau d'argument
-            
             commande=arglist[0].toUpperCase();//on récupère le premier argument en majuscule
             System.out.println("la commande est : "+commande);
-            commande=user.getNick()+msgDelimiter;
-                for (String argument : arglist){
-                    messageRetour+=DatatypeConverter.printBase64Binary((argument.toUpperCase()).getBytes())+msgDelimiter;
-                    commande+=argument.toUpperCase()+msgDelimiter;
+            if (commande.equals("MESSAGE")){//si la commande est un message
+                messageRetour+=DatatypeConverter.printBase64Binary((commande).getBytes())+msgDelimiter;
+                messageRetour+=DatatypeConverter.printBase64Binary((arglist[1]).getBytes())+msgDelimiter;
+                for(int i=2;i<arglist.length;i++){
+                    messageRetour+=DatatypeConverter.printBase64Binary((arglist[i]).getBytes())+msgDelimiter;
                 }
-                
             }
+            else{
+                for (String argument : arglist){
+                    messageRetour+=DatatypeConverter.printBase64Binary((argument).getBytes())+msgDelimiter;
+                }
+            }
+         }
             
         //si ce n'est pas une commande c'est un say
         else{
             System.out.println("pas de commande");
-            commande=user.getNick()+msgDelimiter+"SAY"+msgDelimiter+cible+msgDelimiter+message;
             messageRetour+=DatatypeConverter.printBase64Binary("SAY".getBytes())+msgDelimiter;
             messageRetour+=DatatypeConverter.printBase64Binary(cible.getBytes())+msgDelimiter;
             messageRetour+=DatatypeConverter.printBase64Binary(message.getBytes())+msgDelimiter;
