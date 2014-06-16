@@ -30,6 +30,13 @@ public class Outils {
         return finalMessage;
     }
     
+     //decode le message de base64 vers string
+    public String decode(String message){
+        String finalMessage;
+        finalMessage = new String(DatatypeConverter.parseBase64Binary(message));
+        return finalMessage;
+    }
+    
     //encode le message en base64
     public String encode(byte[] message){
         String finalMessage="";
@@ -39,19 +46,12 @@ public class Outils {
         return finalMessage;
     }
     
-     //decode le message de base64 vers string
-    public String decode(String message){
-        String finalMessage;
-        finalMessage = new String(DatatypeConverter.parseBase64Binary(message));
-        return finalMessage;
-    }
-    
-    //decode le message de base64 en map 'user''commande''arg1''argc'..
+    //decode le message de base64 issu d'un retour de commande en map 'user''commande''arg1''argc'..
     public Map<String,String> parseMessage(String rawMessage){
         Map<String,String> message = new HashMap<>();
         //parsing du message
         String[] tmp = rawMessage.split(this.msgDelimiter);
-        System.out.print("recu du zmsg : ");
+        System.out.print("commande envoyé ");
         for(String element : tmp){
             System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
         }
@@ -65,15 +65,10 @@ public class Outils {
             message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
         }
         message.put("argc", ((Integer)(i -1)).toString());
-        //on initialise un certain nombre de variables
-        message.put("authorized", "false");
-        message.put("correctsignature", "false");
-        message.put("fromnetwork" , "false");
-        //signature du clilent
-        message.put("signature", tmp[tmp.length - 1]);
         return message;
     }
     
+    //decode d'un message issu de l'output
     public Map<String,String> parseOutput(String rawMessage){
         Map<String,String> message = new HashMap<>();
         //parsing du message
@@ -83,21 +78,29 @@ public class Outils {
             System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
         }
         System.out.println("");
-        message.put("user", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
         //liste des arguments
         int i;
-        for(i = 2; i < (tmp.length); i++)
+        for(i = 1; i < (tmp.length); i++)
         {
-            message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
+            message.put("arg" + (i - 1), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
         }
-        message.put("argc", ((Integer)(i -1)).toString());
-        //on initialise un certain nombre de variables
-        message.put("authorized", "false");
-        message.put("correctsignature", "false");
-        message.put("fromnetwork" , "false");
-        //signature du clilent
-        message.put("signature", tmp[tmp.length - 1]);
+        message.put("argc", ((Integer)(i)).toString());
+        return message;
+    }
+    
+    //decode d'un message issu de la boucle de retour
+    public Map<String,String> parsMessageRetour(String rawMessage){
+        Map<String,String> message = new HashMap<>();
+        String[] tmp = rawMessage.split(this.msgDelimiter);
+        System.out.print("recu de la boucle : ");
+        for(String element : tmp){
+            System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
+        }
+        System.out.println("");
+        message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
+        message.put("source", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
+        message.put("argument", new String(DatatypeConverter.parseBase64Binary(tmp[2])));
         return message;
     }
 }

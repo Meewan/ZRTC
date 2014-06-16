@@ -1,14 +1,13 @@
 package exchange;
 
-
 import java.io.IOException;
 import java.security.SignatureException;
+import org.bouncycastle.openpgp.PGPException;
+import fenetre.Window;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.xml.bind.DatatypeConverter;
-
-import org.bouncycastle.openpgp.PGPException;
 import org.zeromq.ZMQ;
         
 /*
@@ -31,12 +30,14 @@ public class ModuleConnexionServer extends Thread{
     private User user;
     private boolean stop=false;
     private final Outils outils=new Outils();
+    private Window fenetre;
     
     
-    public ModuleConnexionServer(String adresse, ZMQ.Context context, User user){
+    public ModuleConnexionServer(String adresse, ZMQ.Context context, User user, Window fenetre){
         this.user=user;
         this.context=context;
         this.adresse=adresse;
+        this.fenetre=fenetre;
         System.out.println("connexion au server a l'adresse :"+adresse );
     }
     
@@ -61,6 +62,8 @@ public class ModuleConnexionServer extends Thread{
         
         //on envoi la demande de connexion
         System.out.println("Demande de connexion au server");
+        //System.out.println("Envoi au server :"+user.getNick()+"#CONNECT#"+user.getPgpKey()+"#"+user.getSignature());
+        //String message = outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPgpKey())+outils.encode(user.getSignature());
         String message = user.addSignature(outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPublicKey()));
         System.out.println("Envoi au server :"+message);
         echange.send(message.getBytes(),0);
@@ -102,6 +105,7 @@ public class ModuleConnexionServer extends Thread{
         
         while (!stop) {
             
+            //String message =outils.encode(user.getNick())+outils.encode("PING")+outils.encode(user.getSignature());
             String message = "";
 				try {
 					message = user.addSignature(outils.encode(user.getNick())+outils.encode("PING"));
@@ -114,7 +118,12 @@ public class ModuleConnexionServer extends Thread{
             
             byte[] reply = echange.recv(0);
             String infoServer = new String(reply);
-            System.out.println("Received " + infoServer);
+            System.out.println("Received in return loop " + infoServer);
+            
+            if (!infoServer.equals("PING")){
+                Map<String,String> tmp = outils.parsMessageRetour(infoServer);
+                fenetre.traitementRetourBoucle(outils.parsMessageRetour(infoServer));
+            }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ex) {

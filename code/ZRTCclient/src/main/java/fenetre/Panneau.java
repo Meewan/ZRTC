@@ -80,6 +80,31 @@ public class Panneau extends JPanel{
         
     }
     
+    //affichage d'un message privé
+    public void displayPrivatMessage(String message, String user, String cible){
+        StyledDocument afficheZone = (StyledDocument)textConv.getDocument();
+        try{
+            
+            java.text.SimpleDateFormat heure = new java.text.SimpleDateFormat("HH:mm:ss");
+            String clock = "["+heure.format(new Date())+"]";
+            String entre =message+"\n";
+            String nicknam = " <"+user+"> to <"+cible+">: ";
+            
+            //création du style du pseudo
+            MutableAttributeSet stylePseudo = new SimpleAttributeSet();
+            StyleConstants.setForeground(stylePseudo, Color.GREEN);
+            StyleConstants.setBold(stylePseudo, true);
+            
+            //affichage du texte
+            afficheZone.insertString(this.position, clock, null);
+            this.position+= clock.length();
+            afficheZone.insertString(this.position, nicknam, stylePseudo);
+            this.position+= nicknam.length();
+            afficheZone.insertString(this.position, entre, null);
+            this.position+= entre.length();
+        } catch (BadLocationException ev) {}
+    }
+    
     //affichage de text simple dans la fenetre, message d'info
     public void displayTextInfo(String message){
         StyledDocument afficheZone = (StyledDocument)textConv.getDocument();

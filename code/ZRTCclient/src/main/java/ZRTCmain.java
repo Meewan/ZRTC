@@ -1,13 +1,10 @@
 
 
+import fenetre.Window;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-
-import fenetre.Window;
-
 import javax.swing.UIManager;
-
 import org.bouncycastle.openpgp.PGPException;
 
 /*
@@ -24,10 +21,6 @@ public class ZRTCmain {
 
     /**
      * @param args the command line arguments
-     * @throws IOException 
-     * @throws PGPException 
-     * @throws NoSuchAlgorithmException 
-     * @throws SignatureException 
      */
     public static void main(String[] args) throws SignatureException, NoSuchAlgorithmException, PGPException, IOException {
         // TODO code application logic here

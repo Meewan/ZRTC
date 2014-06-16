@@ -6,7 +6,6 @@ import exchange.ModuleCommandeServer;
 import exchange.ModuleConnexionServer;
 import exchange.Outils;
 import exchange.User;
-
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -17,23 +16,18 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
-
 import org.bouncycastle.openpgp.PGPException;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
@@ -58,7 +52,6 @@ public class Window extends JFrame implements ActionListener {
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menuItem1 = new JMenu("Fichier");
     private JMenu menuItem2 = new JMenu("Edition");
-    private JMenuItem itemNewOnglet = new JMenuItem("Nouvel onglet");
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
@@ -71,10 +64,10 @@ public class Window extends JFrame implements ActionListener {
     public CardLayout card = new CardLayout(0,0);
     private boolean stop=false;
     
-    public Window() throws SignatureException, PGPException, IOException, NoSuchAlgorithmException{
-    	// Obligé de mettre l'init du user ici
+    public Window()throws SignatureException, PGPException, IOException, NoSuchAlgorithmException{
+        // Obligé de mettre l'init du user ici
     	user = new User("pseudo2","mdp","admin");
-    	
+        
         //Création de la fenètre
         this.setTitle("ZRTC - Le chat en temps réel en Java");
         this.setSize(800,700);
@@ -82,19 +75,9 @@ public class Window extends JFrame implements ActionListener {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         //parametrage du menu
-        itemNewOnglet.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent event){
-                newTab("Onglet 4");
-                System.out.println("ajout d'un onglet");
-            }
-        });
-        menuItem2.add(itemNewOnglet);
         this.menuBar.add(menuItem1);
         this.menuBar.add(menuItem2);
         this.setJMenuBar(menuBar);
-        //tabOnglet.setTabPlacement(JTabbedPane.BOTTOM);
-        //tabOnglet.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         initialisation();
         
         //affichage du container et de la fenetre
@@ -105,7 +88,7 @@ public class Window extends JFrame implements ActionListener {
         String nom = jop.showInputDialog(null, "Veuillez entrer votre pseudo", "Entrer pseudo", JOptionPane.QUESTION_MESSAGE);
         changeNickname(nom);
         //initialisation du module de connexion
-        connexionServer = new ModuleConnexionServer("tcp://localhost:22333",context,user);
+        connexionServer = new ModuleConnexionServer("tcp://localhost:22333",context,user,this);
         if(connexionServer.connectServer(user)){
             (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server etablie");
             connexionServer.start();
@@ -201,18 +184,10 @@ public class Window extends JFrame implements ActionListener {
     recupère la fonction traite la demande et affiche le message
     */
     public void traitementRetourServer(Map<String,String> message){
-        String retour=message.get("retour").toLowerCase();
+        String commandeRetour=message.get("argRetour0");
         String commande=message.get("command");
-        String codeErreur=message.get("codeErr");
+        String codeErreur = message.get("argRetour1");
         
-        int argc = Integer.parseInt(message.get("argc"));
-        List<String> args = new ArrayList<>();
-        for(int i = 0; i < argc; i++)
-        {
-            args.add(i, message.get("arg" + i));
-        }
-        
-        if(!retour.equals("default")) System.out.println("la réponse n'est pas un default !!!");
         switch (commande.toLowerCase())
         {
             case "say":
@@ -220,13 +195,13 @@ public class Window extends JFrame implements ActionListener {
                 switch (codeErreur)
                 {
                 case "200":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Message bien envoyé");
+                    System.out.println("message bien envoyé");
                     break;
                 case "402":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
+                    (listeOnglet.get(message.get("arg0"))).displayTextInfo("Erreur "+codeErreur);
                     break;
                 default:
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    (listeOnglet.get(message.get("arg0"))).displayTextInfo("ERREUR "+codeErreur);
                     break;
                 }
             }
@@ -237,14 +212,14 @@ public class Window extends JFrame implements ActionListener {
             switch (codeErreur)
             {
                 case "200":
-                    newTab(args.get(0));
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoin le chan "+args.get(0));
+                    newTab(message.get("arg0"));
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoint le chan "+message.get("arg0"));
                     break;
                 case "402":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo(codeErreur);
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+ codeErreur);
                     break;
                 default:
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+ codeErreur);
                     break;
             }
                 
@@ -256,16 +231,17 @@ public class Window extends JFrame implements ActionListener {
                 switch (codeErreur)
                 {
                 case "200":
+                    ongletCurrent="Demmarage";
                     card.show(panelRight, ongletCurrent);
-                    removeTab(args.get(0));
+                    //*****a ajouter la suppression de tout les onglets encours*******
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez ete déconnecté du server");
                     
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoin le chan "+args.get(0));
                 break;
                 case "402":
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo(codeErreur);
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+ codeErreur);
                 break;
                 default:
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+ codeErreur);
                 break;
                 }
             }
@@ -273,25 +249,17 @@ public class Window extends JFrame implements ActionListener {
                 
             case "message":
             {
+                
                 switch (codeErreur)
                 {
                     case "200":
-                        if(listeOnglet.containsKey(args.get(0)))
-                        {
-                            (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
-                        }
-                        else
-                        {
-                            newTab(args.get(0));
-                            (listeOnglet.get(args.get(0))).displayTextInfo("Conversation privé avec "+args.get(0));
-                            (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
-                        }
+                        (listeOnglet.get(ongletCurrent)).displayPrivatMessage(message.get("arg1"), user.getNick(),message.get("arg0"));
                     break;
                     case "402":
                         (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
                     break;
                     case "406":
-                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur :"+codeErreur+". Votre destinataire n'est pas reconnu");
                     break;
                 }
             }
@@ -308,8 +276,8 @@ public class Window extends JFrame implements ActionListener {
                 switch (codeErreur)
                 {
                     case "200":
-                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous pseudo est maintenant :"+args.get(0));
-                        changeNickname(args.get(0));
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous pseudo est maintenant :"+message.get("arg0"));
+                        changeNickname(message.get("arg0"));
                     break;
                     case "402":
                         (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur :"+codeErreur);
@@ -324,50 +292,50 @@ public class Window extends JFrame implements ActionListener {
         
     }
     
-    //***en construction*** fait doublon avec la précédente
+    //fonction de traitement et affichage d'un message de l'output
     public void traitmentRv(Map<String,String> message){
         String commande=message.get("command");
-        int argc = Integer.parseInt(message.get("argc"));
-        List<String> args = new ArrayList<>();
-        for(int i = 0; i < argc; i++)
-        {
-            args.add(i, message.get("arg" + i));
-        }
-        
-        //on verifie que le cannal demande existe bien deja
-        if (!(commande.toLowerCase()).equals("message")&&!listeOnglet.containsKey(args.get(0))){
-            
-        }
-        System.out.println("cmd: "+commande+" - "+message.get("cible")+" - "+args.get(0));
         
         switch (commande.toLowerCase())
         {
             case "message":
             {
-                (listeOnglet.get(message.get("cible"))).displayTextMessage(args.get(0), message.get("user"));
+                (listeOnglet.get(message.get("cible"))).displayTextMessage(message.get("arg1"), message.get("arg0"));
             }
             break;
-                
-            case "connect":
-            {
-                
-            }
-            break;
-
                 
             case "info":
             {
-                (listeOnglet.get(message.get("cible"))).displayTextInfo(args.get(0));
+                (listeOnglet.get(message.get("cible"))).displayTextInfo(message.get("arg0"));
             }
             break;
         }
                 
+    }
+    
+    public void traitementRetourBoucle(Map<String,String> message){
+        String commande=message.get("command");
+        
+        switch (commande.toLowerCase())
+        {
+            case "message":
+            {
+                (listeOnglet.get(ongletCurrent)).displayPrivatMessage(message.get("argument"), message.get("source"), user.getNick());
+            }
+            break;
+            case "mode":
+            {
+                
+            }
+            break;
+        }
     }
 
     //action appelé quand on appuie sur enter dans le champ de text
     @Override
     public void actionPerformed(ActionEvent e) {
 
+        //traitmentEv(textUser.getText());
         try {
 			traitmentEv(textUser.getText());
 		} catch (SignatureException | PGPException | IOException e1) {
@@ -397,7 +365,7 @@ public class Window extends JFrame implements ActionListener {
             System.out.println("lancement du module de reception cle :"+connexionServer.getUidKey());
         reception = context.socket(ZMQ.PULL);
         reception.setIdentity(connexionServer.getUidKey().getBytes());
-        reception.connect("tcp://localhost:5555");
+        reception.connect("tcp://localhost:5566");
         
         while(!stop){
             ZMsg msg = ZMsg.recvMsg(reception);

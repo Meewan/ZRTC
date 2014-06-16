@@ -8,13 +8,8 @@ package exchange;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.SignatureException;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.bind.DatatypeConverter;
 
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
@@ -57,11 +52,10 @@ public class ModuleCommandeServer {
     cible: chan de depart=destination
     */
     public void sendMessage(String message, User user, String cible) throws SignatureException, PGPException, IOException{
-    	System.out.println("send message");
+        System.out.println("send message");
         message = buildMessage(message,cible);
         System.out.println("message: "+message);
         String messageFinal= user.addSignature(outils.encode(user.getNick())+message);
-        System.out.println("final Message: "+messageFinal);
         commande=messageFinal;
         System.out.println("envoi au server :"+messageFinal);
         requester.send(messageFinal.getBytes(),0);
@@ -90,8 +84,9 @@ public class ModuleCommandeServer {
                 messageRetour+=DatatypeConverter.printBase64Binary((commande).getBytes())+msgDelimiter;
                 messageRetour+=DatatypeConverter.printBase64Binary((arglist[1]).getBytes())+msgDelimiter;
                 for(int i=2;i<arglist.length;i++){
-                    messageRetour+=DatatypeConverter.printBase64Binary((arglist[i]).getBytes())+msgDelimiter;
+                    messageRetour+=DatatypeConverter.printBase64Binary((arglist[i]+" ").getBytes());
                 }
+                messageRetour+="#";
             }
             else{
                 for (String argument : arglist){
@@ -121,8 +116,12 @@ public class ModuleCommandeServer {
             System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
         }
         System.out.println("");
-        message.put("retour", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
-        message.put("codeErr", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
+        int i;
+        for(i = 0; i < (tmp.length); i++)
+        {
+            message.put("argRetour" + (i), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
+        }
+        message.put("argRetourc", ((Integer)(i +1)).toString());
         
         return message;
     }
