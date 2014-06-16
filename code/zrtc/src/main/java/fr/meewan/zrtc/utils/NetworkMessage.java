@@ -37,6 +37,9 @@ public class NetworkMessage {
         message.put("authorized", "true");
         message.put("correctsignature", "true");
         message.put("fromnetwork" , "true");
+        message.put("state", "0");
+        message.put("lifecycle0", "command");
+        message.put("lifecyclestates", "0");
         return message;
     }
     
@@ -54,6 +57,9 @@ public class NetworkMessage {
         message.put("authorized", "true");
         message.put("correctsignature", "true");
         message.put("fromnetwork" , "true");
+        message.put("state", "0");
+        message.put("lifecycle0", "command");
+        message.put("lifecyclestates", "0");
         return message;
     }
    
@@ -71,6 +77,9 @@ public class NetworkMessage {
         message.put("authorized", "true");
         message.put("correctsignature", "true");
         message.put("fromnetwork" , "true");
+        message.put("state", "0");
+        message.put("lifecycle0", "command");
+        message.put("lifecyclestates", "0");
         return message;
     }
     
@@ -97,6 +106,9 @@ public class NetworkMessage {
         message.put("authorized", "true");
         message.put("correctsignature", "true");
         message.put("fromnetwork" , "true");
+        message.put("state", "0");
+        message.put("lifecycle0", "command");
+        message.put("lifecyclestates", "0");
         return message;
     }
     

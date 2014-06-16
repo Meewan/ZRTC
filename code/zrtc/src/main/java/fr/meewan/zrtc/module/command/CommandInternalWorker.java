@@ -192,7 +192,7 @@ public class CommandInternalWorker extends Thread
                 {
                     CommandExternalWorker external = commandServer.getActiveExternalConnexions(message.get("user"));
                     commandServer.addToActiveExternalConnexions(message.get("arg0"), external);
-                    commandServer.removeFromActiveExternalConnexions(message.get(message.get("user")));
+                    commandServer.removeFromActiveExternalConnexions(message.get("user"));
                     if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
                     {
                         return null;
@@ -201,7 +201,7 @@ public class CommandInternalWorker extends Thread
                     break;
                 case "quit":
                 {
-                    commandServer.removeFromActiveExternalConnexions(message.get(message.get("user")));
+                    commandServer.removeFromActiveExternalConnexions(message.get("user"));
                     if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
                     {
                         return null;
