@@ -78,7 +78,7 @@ public class Outils {
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
         //liste des arguments
         int i;
-        for(i = 2; i < (tmp.length)-1; i++)
+        for(i = 2; i < (tmp.length); i++)
         {
             message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
         }
