@@ -30,6 +30,15 @@ public class Outils {
         return finalMessage;
     }
     
+    //encode le message en base64
+    public String encode(byte[] message){
+        String finalMessage="";
+        finalMessage += DatatypeConverter.printBase64Binary(message);
+        finalMessage += msgDelimiter;
+       
+        return finalMessage;
+    }
+    
      //decode le message de base64 vers string
     public String decode(String message){
         String finalMessage;

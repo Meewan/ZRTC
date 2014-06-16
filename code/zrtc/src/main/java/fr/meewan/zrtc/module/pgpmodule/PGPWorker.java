@@ -51,28 +51,28 @@ public class PGPWorker extends Thread
                         
 			if(msg.size() == 1)
         	{
-        		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(msg.getFirst().toString());
+        		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(new String(msg.getFirst().getData()));
         		
         		if(msgMap.get("authorized").equals("true") && msgMap.containsKey("signature") &&
         				msgMap.containsKey("pgpkey") && msgMap.containsKey("commandraw"))
         		{
-        			msgMap.put("correctsignature", "true");
+        			//msgMap.put("correctsignature", "true");
         			// Décommenter pour utiliser le vrai execute
-        			//msgMap = verify(msgMap);
-        		}
-                        else
-                        {
-                            msgMap.put("correctsignature", "false");
-                        }
-                        
-                        //gestion du cycle de vie
-                        Integer state = Integer.parseInt(msgMap.get("state"));
-                        state ++;
-                        msgMap.put("state", state.toString());
-                        if(state <= Integer.parseInt(msgMap.get("lifecyclestates")))
-                        {
-                            sendInNetwork(msgMap);
-                        }
+        			msgMap = verify(msgMap);
+				}
+				else
+				{
+				    msgMap.put("correctsignature", "false");
+				}
+				
+				//gestion du cycle de vie
+				Integer state = Integer.parseInt(msgMap.get("state"));
+				state ++;
+				msgMap.put("state", state.toString());
+				if(state <= Integer.parseInt(msgMap.get("lifecyclestates")))
+				{
+				    sendInNetwork(msgMap);
+				}
         		
         	}
 			
@@ -83,7 +83,7 @@ public class PGPWorker extends Thread
 	private Map<String,String> verify(Map<String,String> msg)
 	{
 		String b64Signature = msg.get("signature");
-		String b64PubKey = msg.get("pgp");
+		String b64PubKey = msg.get("pgpkey");
 		String cmdRaw = msg.get("commandraw");
 		
 		msg.put("correctsignature", "false");

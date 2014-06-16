@@ -6,9 +6,25 @@
 
 package exchange;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.SignatureException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.bind.DatatypeConverter;
+
+import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
+import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPair;
 import org.zeromq.ZMQ;
 
 /**
@@ -40,9 +56,12 @@ public class ModuleCommandeServer {
     user : utilisateur
     cible: chan de depart=destination
     */
-    public void sendMessage(String message, User user, String cible){
+    public void sendMessage(String message, User user, String cible) throws SignatureException, PGPException, IOException{
+    	System.out.println("send message");
         message = buildMessage(message,cible);
-        String messageFinal=outils.encode(user.getNick())+message+outils.encode("SIGNATURE");
+        System.out.println("message: "+message);
+        String messageFinal= user.addSignature(outils.encode(user.getNick())+message);
+        System.out.println("final Message: "+messageFinal);
         commande=messageFinal;
         System.out.println("envoi au server :"+messageFinal);
         requester.send(messageFinal.getBytes(),0);

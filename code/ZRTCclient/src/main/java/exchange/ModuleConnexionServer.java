@@ -1,9 +1,14 @@
 package exchange;
 
 
+import java.io.IOException;
+import java.security.SignatureException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.bind.DatatypeConverter;
+
+import org.bouncycastle.openpgp.PGPException;
 import org.zeromq.ZMQ;
         
 /*
@@ -50,14 +55,14 @@ public class ModuleConnexionServer extends Thread{
     connection ok ->return true
     no connexion -> return false
     */
-    public boolean connectServer(User user){
+    public boolean connectServer(User user) throws SignatureException, PGPException, IOException{
         echange = context.socket(ZMQ.REQ);
         echange.connect(adresse);
         
         //on envoi la demande de connexion
         System.out.println("Demande de connexion au server");
-        System.out.println("Envoi au server :"+user.getNick()+"#CONNECT#"+user.getPgpKey()+"#"+user.getSignature());
-        String message = outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPgpKey())+outils.encode(user.getSignature());
+        String message = user.addSignature(outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPublicKey()));
+        System.out.println("Envoi au server :"+message);
         echange.send(message.getBytes(),0);
         
         //on attend la réponse du server
@@ -97,7 +102,13 @@ public class ModuleConnexionServer extends Thread{
         
         while (!stop) {
             
-            String message =outils.encode(user.getNick())+outils.encode("PING")+outils.encode(user.getSignature());
+            String message = "";
+				try {
+					message = user.addSignature(outils.encode(user.getNick())+outils.encode("PING"));
+				} catch (SignatureException | PGPException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             echange.send(message.getBytes(),0);
         
             

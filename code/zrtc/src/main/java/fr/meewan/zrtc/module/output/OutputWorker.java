@@ -56,7 +56,7 @@ public class OutputWorker extends Thread
 	    	
 	    	if(msg.size() == 1)
 	    	{
-	    		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(msg.getFirst().toString());
+	    		Map<String,String> msgMap = new JSONDeserializer<HashMap<String,String>>().deserialize(new String(msg.getFirst().getData()));
 	    		
 	    		if(msgMap.get("authorized").equals("true") && msgMap.get("correctsignature").equals("true"))
 	    		{

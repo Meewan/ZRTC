@@ -6,6 +6,7 @@ import exchange.ModuleCommandeServer;
 import exchange.ModuleConnexionServer;
 import exchange.Outils;
 import exchange.User;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -13,10 +14,14 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,6 +33,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+
+import org.bouncycastle.openpgp.PGPException;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -55,7 +62,7 @@ public class Window extends JFrame implements ActionListener {
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
-    private User user = new User("pseudo2","mdp","admin");
+    private User user;
     private ZMQ.Context context = ZMQ.context(1);
     private ModuleConnexionServer connexionServer;
     private ModuleCommandeServer commandeServer;
@@ -64,7 +71,10 @@ public class Window extends JFrame implements ActionListener {
     public CardLayout card = new CardLayout(0,0);
     private boolean stop=false;
     
-    public Window(){
+    public Window() throws SignatureException, PGPException, IOException, NoSuchAlgorithmException{
+    	// Obligé de mettre l'init du user ici
+    	user = new User("pseudo2","mdp","admin");
+    	
         //Création de la fenètre
         this.setTitle("ZRTC - Le chat en temps réel en Java");
         this.setSize(800,700);
@@ -181,7 +191,7 @@ public class Window extends JFrame implements ActionListener {
     fonction de traitement d'un envoi de commande au server
     affiche, envoi et appel la fonction de traitement
     */
-    public void traitmentEv(String message){
+    public void traitmentEv(String message) throws SignatureException, PGPException, IOException{
         commandeServer.sendMessage(message, user, ongletCurrent);//traitement et envoi du message au server
         this.traitementRetourServer(commandeServer.parseCommandeServer(commandeServer.getRetour()));//affichage de la réponse du server
     }
@@ -358,7 +368,12 @@ public class Window extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        traitmentEv(textUser.getText());
+        try {
+			traitmentEv(textUser.getText());
+		} catch (SignatureException | PGPException | IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
         textUser.setText(null);//on vide le champ de texte
         
     }
