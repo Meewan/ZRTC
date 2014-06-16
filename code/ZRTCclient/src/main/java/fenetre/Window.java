@@ -320,7 +320,7 @@ public class Window extends JFrame implements ActionListener {
         {
             case "message":
             {
-                (listeOnglet.get("cible")).displayTextMessage(args.get(1), message.get("user"));
+                (listeOnglet.get("cible")).displayTextMessage(args.get(0), message.get("user"));
             }
             break;
                 
