@@ -191,7 +191,7 @@ public class CommandInternalWorker extends Thread
                 case "nick":
                 {
                     CommandExternalWorker external = commandServer.getActiveExternalConnexions(message.get("user"));
-                    commandServer.addToActiveExternalConnexions(message.get(message.get("arg0")), external);
+                    commandServer.addToActiveExternalConnexions(message.get("arg0"), external);
                     commandServer.removeFromActiveExternalConnexions(message.get(message.get("user")));
                     if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
                     {

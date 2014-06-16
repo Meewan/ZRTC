@@ -41,6 +41,7 @@ public class VirtualClient extends Thread
 		while(!stop)
 		{
 			ZMsg msg = ZMsg.recvMsg(subscriber);
+                        System.out.println("received: "+identity+" "+msg.getFirst().getData().toString());
 			msg.wrap(new ZFrame(identity));
 			msg.send(pusher);
 		}

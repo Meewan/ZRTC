@@ -119,7 +119,7 @@ public class OutputWorker extends Thread
                     }
                     else
                     {
-                    	clients.put(uId, new VirtualClient(coreContext, edgeContext, user, args.get(0)));
+                    	clients.put(uId, new VirtualClient(coreContext, edgeContext, uId, args.get(0)));
                     }
                 	
                 	ZMsg msg = new ZMsg();
