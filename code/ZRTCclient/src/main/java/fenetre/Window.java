@@ -54,7 +54,7 @@ public class Window extends JFrame implements ActionListener {
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
-    private User user = new User("pseudo","mdp","admin");
+    private User user = new User("pseudo2","mdp","admin");
     private ZMQ.Context context = ZMQ.context(1);
     private ModuleConnexionServer connexionServer;
     private ModuleCommandeServer commandeServer;
@@ -388,12 +388,15 @@ public class Window extends JFrame implements ActionListener {
         private Outils outils;
         @Override
         public void run(){
+            System.out.println("lancement du module de reception :"+connexionServer.getPgpKey());
+            System.out.println("adresse pour écouter sur le serveur: "+connexionServer.getAdresse());
         reception = context.socket(ZMQ.PULL);
         reception.setIdentity(connexionServer.getPgpKey().getBytes());
         reception.connect(connexionServer.getAdresse());
         
         while(!stop){
             ZMsg msg = ZMsg.recvMsg(reception);
+            System.out.println("reception d'un Zmsg");
             Map<String,String>  msgMap;
             if(msg.size()!=2) System.out.println("ZMsg trop long ou trop court");
             System.out.println("Recu frame1: "+ new String(msg.getFirst().getData()));
