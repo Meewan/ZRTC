@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -90,6 +91,9 @@ public class Window extends JFrame implements ActionListener {
         this.setContentPane(container);
         this.setVisible(true);
         
+        JOptionPane jop = new JOptionPane(), jop2 = new JOptionPane();
+        String nom = jop.showInputDialog(null, "Veuillez entrer votre pseudo", "Entrer pseudo", JOptionPane.QUESTION_MESSAGE);
+        changeNickname(nom);
         //initialisation du module de connexion
         connexionServer = new ModuleConnexionServer("tcp://localhost:22333",context,user);
         if(connexionServer.connectServer(user)){
@@ -388,11 +392,10 @@ public class Window extends JFrame implements ActionListener {
         private Outils outils;
         @Override
         public void run(){
-            System.out.println("lancement du module de reception :"+connexionServer.getPgpKey());
-            System.out.println("adresse pour écouter sur le serveur: "+connexionServer.getAdresse());
+            System.out.println("lancement du module de reception cle :"+connexionServer.getPgpKey());
         reception = context.socket(ZMQ.PULL);
         reception.setIdentity(connexionServer.getPgpKey().getBytes());
-        reception.connect(connexionServer.getAdresse());
+        reception.connect("tcp://localhost:5555");
         
         while(!stop){
             ZMsg msg = ZMsg.recvMsg(reception);
