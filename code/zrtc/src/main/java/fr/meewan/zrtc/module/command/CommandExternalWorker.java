@@ -127,6 +127,7 @@ public class CommandExternalWorker extends Thread
             j++;
             message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
         }
+        
         message.put("argc", ((Integer)(j)).toString());
         //on initialise un certain nombre de variables
         message.put("authorized", "false");
@@ -137,6 +138,12 @@ public class CommandExternalWorker extends Thread
         message.put("signature", tmp[tmp.length - 1]);
         generateCommandId(message.get("user"));
         message.put("commandid", this.commandId);
+       
+        //exception pour préserver la clef en base64
+        if(message.get("command").toLowerCase().equals("connect") && j > 0)
+        {
+            message.put("arg0", tmp[2]);
+        }
         return message;
     }
     
