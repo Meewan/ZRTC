@@ -389,7 +389,7 @@ public class Window extends JFrame implements ActionListener {
     //class qui écoute le server et attend les messages
     class ModuleReceptionServer extends Thread{
         private ZMQ.Socket reception;
-        private Outils outils;
+        private Outils outils=new Outils();
         @Override
         public void run(){
             System.out.println("lancement du module de reception cle :"+connexionServer.getPgpKey());
@@ -401,6 +401,7 @@ public class Window extends JFrame implements ActionListener {
             ZMsg msg = ZMsg.recvMsg(reception);
             System.out.println("reception d'un Zmsg");
             Map<String,String>  msgMap;
+            msg.pop();
             if(msg.size()!=2) System.out.println("ZMsg trop long ou trop court");
             System.out.println("Recu frame1: "+ new String(msg.getFirst().getData()));
             System.out.println("Recu frame2: "+ new String(msg.getLast().getData()));
