@@ -2,7 +2,9 @@ package fenetre;
 
 
 
-import exchange.ModuleCommServer;
+import exchange.ModuleCommandeServer;
+import exchange.ModuleConnexionServer;
+import exchange.Outils;
 import exchange.User;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -52,9 +54,10 @@ public class Window extends JFrame implements ActionListener {
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
-    private User user = new User("pseudo","mdp","admin");
+    private User user = new User("pseud","mdp","admin");
     private ZMQ.Context context = ZMQ.context(1);
-    private ModuleCommServer commServer;
+    private ModuleConnexionServer connexionServer;
+    private ModuleCommandeServer commandeServer;
     private Map<String , Panneau> listeOnglet = new HashMap<>();
     private String ongletCurrent;
     public CardLayout card = new CardLayout(0,0);
@@ -88,10 +91,11 @@ public class Window extends JFrame implements ActionListener {
         this.setVisible(true);
         
         //initialisation du module de connexion
-        commServer = new ModuleCommServer("tcp://localhost:22333",context,user);
-        if(commServer.connectServer(user)){
+        connexionServer = new ModuleConnexionServer("tcp://localhost:22333",context,user);
+        if(connexionServer.connectServer(user)){
             (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server etablie");
-            commServer.start();
+            connexionServer.start();
+            commandeServer=new ModuleCommandeServer("tcp://localhost:22333",context,user);
             new ModuleReceptionServer().start();
         }
         else {
@@ -171,10 +175,102 @@ public class Window extends JFrame implements ActionListener {
     
     public void traitmentEv(String message){
         (listeOnglet.get(ongletCurrent)).displayTextMessage(message, user.getNick());//affichage du text dans la fenetre
-        commServer.sendMessage(message, user);//traitement et envoi du message au server
-        this.traitmentRv(commServer.parseMessage(commServer.getRetour()));//affichage de la réponse du server
+        commandeServer.sendMessage(message, user, ongletCurrent);//traitement et envoi du message au server
+        this.traitementRetourServer(commandeServer.parseCommandeServer(commandeServer.getRetour()));//affichage de la réponse du server
     }
     
+    
+    public void traitementRetourServer(Map<String,String> message){
+        String retour=message.get("retour").toLowerCase();
+        String commande=message.get("command");
+        String codeErreur=message.get("codeErr");
+        
+        int argc = Integer.parseInt(message.get("argc"));
+        List<String> args = new ArrayList<>();
+        for(int i = 0; i < argc; i++)
+        {
+            args.add(i, message.get("arg" + i));
+        }
+        
+        if(!retour.equals("default")) System.out.println("la réponse n'est pas un default !!!");
+        switch (commande.toLowerCase())
+        {
+            case "say":
+            {
+                switch (codeErreur)
+                {
+                case "200":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Message bien envoyé");
+                    break;
+                case "402":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
+                    break;
+                default:
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    break;
+                }
+            }
+            break;
+                
+            case "join":
+            {
+            switch (codeErreur)
+            {
+                case "200":
+                    newTab(args.get(0));
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoin le chan "+args.get(0));
+                    break;
+                case "402":
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo(codeErreur);
+                    break;
+                default:
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    break;
+            }
+                
+            }
+            break;
+                
+            case "connect":
+            {
+                
+            }
+            break;
+                
+            case "message":
+            {
+                switch (codeErreur)
+                {
+                    case "200":
+                        if(listeOnglet.containsKey(args.get(0)))
+                        {
+                            (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
+                        }
+                        else
+                        {
+                            newTab(args.get(0));
+                            (listeOnglet.get(args.get(0))).displayTextInfo("Conversation privé avec "+args.get(0));
+                            (listeOnglet.get(args.get(0))).displayTextMessage(args.get(1), args.get(0));
+                        }
+                    break;
+                    case "402":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
+                    break;
+                    case "406":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur "+codeErreur);
+                    break;
+                }
+            }
+            break;
+                
+            case "mode":
+            {
+                
+            }
+            break;
+        }
+        
+    }
     public void traitmentRv(Map<String,String> message){
         String commande=message.get("command");
         int argc = Integer.parseInt(message.get("argc"));
@@ -244,6 +340,7 @@ public class Window extends JFrame implements ActionListener {
                 
             case "join":
             {
+                newTab(args.get(0));
                 (listeOnglet.get(args.get(0))).displayTextInfo(message.get("user")+" a rejoin le canal.");
             }
             break;
@@ -277,12 +374,12 @@ public class Window extends JFrame implements ActionListener {
     
     class ModuleReceptionServer extends Thread{
         private ZMQ.Socket reception;
-        
+        private Outils outils;
         @Override
         public void run(){
         reception = context.socket(ZMQ.PULL);
-        reception.setIdentity(commServer.getPgpKey().getBytes());
-        reception.connect(commServer.getAdresse());
+        reception.setIdentity(connexionServer.getPgpKey().getBytes());
+        reception.connect(connexionServer.getAdresse());
         
         while(!stop){
             ZMsg msg = ZMsg.recvMsg(reception);
@@ -290,12 +387,12 @@ public class Window extends JFrame implements ActionListener {
             if(msg.size()!=2) System.out.println("ZMsg trop long ou trop court");
             System.out.println("Recu frame1: "+ new String(msg.getFirst().getData()));
             System.out.println("Recu frame2: "+ new String(msg.getLast().getData()));
-            msgMap=commServer.parseMessage(new String(msg.getLast().getData()));
+            msgMap=outils.parseMessage(new String(msg.getLast().getData()));
             msgMap.put("cible", new String(msg.getFirst().getData()));
             traitmentRv(msgMap);
         }
         reception.close();
-        commServer.close();
+        connexionServer.close();
         
     }
     }
