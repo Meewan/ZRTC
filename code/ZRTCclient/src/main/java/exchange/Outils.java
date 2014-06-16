@@ -64,4 +64,31 @@ public class Outils {
         message.put("signature", tmp[tmp.length - 1]);
         return message;
     }
+    
+    public Map<String,String> parseOutput(String rawMessage){
+        Map<String,String> message = new HashMap<>();
+        //parsing du message
+        String[] tmp = rawMessage.split(this.msgDelimiter);
+        System.out.print("recu du zmsg : ");
+        for(String element : tmp){
+            System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
+        }
+        System.out.println("");
+        message.put("user", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
+        message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
+        //liste des arguments
+        int i;
+        for(i = 2; i < (tmp.length)-1; i++)
+        {
+            message.put("arg" + (i - 2), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
+        }
+        message.put("argc", ((Integer)(i -1)).toString());
+        //on initialise un certain nombre de variables
+        message.put("authorized", "false");
+        message.put("correctsignature", "false");
+        message.put("fromnetwork" , "false");
+        //signature du clilent
+        message.put("signature", tmp[tmp.length - 1]);
+        return message;
+    }
 }
