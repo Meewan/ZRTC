@@ -315,12 +315,13 @@ public class Window extends JFrame implements ActionListener {
         if (!(commande.toLowerCase()).equals("message")&&!listeOnglet.containsKey(args.get(0))){
             
         }
+        System.out.println("cmd: "+commande+" - "+message.get("cible")+" - "+args.get(0));
         
         switch (commande.toLowerCase())
         {
             case "message":
             {
-                (listeOnglet.get("cible")).displayTextMessage(args.get(0), message.get("user"));
+                (listeOnglet.get(message.get("cible"))).displayTextMessage(args.get(0), message.get("user"));
             }
             break;
                 
@@ -423,7 +424,7 @@ public class Window extends JFrame implements ActionListener {
             if(msg.size()!=2) System.out.println("ZMsg trop long ou trop court");
             System.out.println("Recu frame1: "+ new String(msg.getFirst().getData()));
             System.out.println("Recu frame2: "+ new String(msg.getLast().getData()));
-            msgMap=outils.parseMessage(new String(msg.getLast().getData()));
+            msgMap=outils.parseOutput(new String(msg.getLast().getData()));
             msgMap.put("cible", new String(msg.getFirst().getData()));
             traitmentRv(msgMap);
         }
