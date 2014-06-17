@@ -9,10 +9,13 @@ package fr.meewan.zrtc.module.command;
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
 import fr.meewan.zrtc.utils.NetworkMessage;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
@@ -140,6 +143,13 @@ public class CommandInternalWorker extends Thread
                     {
                         Map<String, String> newMessage = new HashMap<>(message);
                         newMessage.put("arg0", message.get("user"));
+                        try 
+                        {
+                            newMessage.put("arg1", new String(message.get("arg1").getBytes(), "UTF-8"));
+                        } catch (UnsupportedEncodingException ex) 
+                        {
+                           
+                        }
                         target.setMessage(newMessage);
                         target.wakeUp();
                         if(!sendToClient(NetworkMessage.generateSuccessMessage(commandId)))
