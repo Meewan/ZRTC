@@ -7,19 +7,11 @@
 package exchange;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.SignatureException;
 import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 
-import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
-import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
-import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.openpgp.PGPException;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPair;
 import org.zeromq.ZMQ;
 
 /**

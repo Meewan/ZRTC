@@ -17,6 +17,7 @@ import org.zeromq.ZMQ.Socket;
 import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
 import fr.meewan.zrtc.utils.NetworkMessage;
+import java.io.UnsupportedEncodingException;
 
 public class OutputWorker extends Thread
 {
@@ -136,12 +137,22 @@ public class OutputWorker extends Thread
                 {
                 	ZMsg msg = new ZMsg();
                 	msg.add(args.get(0));
-                	String content = 
-                			DatatypeConverter.printBase64Binary("message".getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary(user.getBytes()) + msgDelimiter +
-                			DatatypeConverter.printBase64Binary(args.get(1).getBytes());
-                	msg.add(content);
-                	msg.send(pub);
+                	String content;
+                        try 
+                        {
+                            content = DatatypeConverter.printBase64Binary("message".getBytes()) + msgDelimiter +
+                                    DatatypeConverter.printBase64Binary(user.getBytes()) + msgDelimiter +
+                                    DatatypeConverter.printBase64Binary(new String(args.get(1).getBytes(), "UTF-8").getBytes());
+                        } 
+                        catch (UnsupportedEncodingException ex) 
+                        {
+                            System.out.println("erreur d' encodage");
+                            content = DatatypeConverter.printBase64Binary("message".getBytes()) + msgDelimiter +
+                                    DatatypeConverter.printBase64Binary(user.getBytes()) + msgDelimiter +
+                                    DatatypeConverter.printBase64Binary(args.get(1).getBytes());
+                        }
+                            msg.add(content);
+                            msg.send(pub);
                 }
                     break;
                     
