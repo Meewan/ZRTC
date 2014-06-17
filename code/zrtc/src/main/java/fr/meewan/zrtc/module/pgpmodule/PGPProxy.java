@@ -61,6 +61,10 @@ public class PGPProxy extends Thread
 			if(items.pollin(1))
 			{
 				ZMsg msg = ZMsg.recvMsg(front);
+                                ZMsg retour = new ZMsg();
+                                retour.add("OK");
+                                retour.wrap(msg.peekFirst());
+                                retour.send(front);
 				msg.addFirst(new ZFrame(workerQueue.poll()));
 				msg.send(back);
 			}

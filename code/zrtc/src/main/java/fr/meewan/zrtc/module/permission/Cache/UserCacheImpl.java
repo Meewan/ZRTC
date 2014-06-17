@@ -324,7 +324,7 @@ public class UserCacheImpl implements UserCache{
                 return null;
             }
             String right = this.rightMap.get(command).get(chan);
-            if (right != null && right.equals("true") && ((fromBase && registered) || !fromBase))
+            if ((right != null && right.equals("true") && ((fromBase && registered) || !fromBase))|| (!registered && command.equals("identify")))
             {
                 return true;
             }
