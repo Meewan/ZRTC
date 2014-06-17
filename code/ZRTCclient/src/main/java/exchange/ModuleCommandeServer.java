@@ -6,6 +6,7 @@
 
 package exchange;
 
+import fenetre.Window;
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Map;
@@ -18,7 +19,7 @@ import org.zeromq.ZMQ;
  *
  * @author Gauthier
  */
-public class ModuleCommandeServer {
+public class ModuleCommandeServer extends Thread{
     public String commande;
     private final String msgDelimiter = "#";
     private final ZMQ.Socket requester;
@@ -27,21 +28,52 @@ public class ModuleCommandeServer {
     private String retour;
     private User user;
     private boolean stop=false;
+    private boolean requete=false;
     private final Outils outils=new Outils();
+    private String messageFinal;
+    private String cible;
+    private Window fenetre;
     
     
-    public ModuleCommandeServer(String adresse, ZMQ.Context context, User user){
+    public ModuleCommandeServer(String adresse, ZMQ.Context context, User user, Window fenetre){
         this.user=user;
         this.context=context;
         this.adresse=adresse;
+        this.fenetre=fenetre;
         requester = context.socket(ZMQ.REQ);
         requester.connect(adresse);
 }
+    
+    public void close(){
+        stop=true;
+        requester.close();
+    }
+    
+    public void setRequete(boolean requete){
+        this.requete=requete;
+        System.out.println(this.requete);
+    }
+    
+    public String getRetour(){
+        return retour;
+    }
     
     /*fonction envoi un message au server 
     message : message a envoyer
     user : utilisateur
     cible: chan de depart=destination
+    */
+    
+    /*
+    public void sendMessage (String message, User usertmp, String cibletmp) throws SignatureException, PGPException, IOException{
+        cible=cibletmp;
+        user=usertmp;
+        System.out.println("send message");
+        message = buildMessage(message,cible);
+        System.out.println("message: "+message);
+        messageFinal= user.addSignature(outils.encode(user.getNick())+message);
+        commande=messageFinal;
+    }
     */
     public void sendMessage(String message, User user, String cible) throws SignatureException, PGPException, IOException{
         System.out.println("send message");
@@ -51,6 +83,7 @@ public class ModuleCommandeServer {
         commande=messageFinal;
         System.out.println("envoi au server :"+messageFinal);
         requester.send(messageFinal.getBytes(),0);
+        System.out.println("en attente de reponse server...");
         
         byte[] reply = requester.recv(0);
         retour = new String(reply);
@@ -79,6 +112,10 @@ public class ModuleCommandeServer {
                     messageRetour+=DatatypeConverter.printBase64Binary((arglist[i]+" ").getBytes());
                 }
                 messageRetour+="#";
+            }
+            else if(commande.equals("PART")){
+                messageRetour+=DatatypeConverter.printBase64Binary((commande).getBytes())+msgDelimiter;
+                messageRetour+=DatatypeConverter.printBase64Binary(cible.getBytes())+msgDelimiter;
             }
             else{
                 for (String argument : arglist){
@@ -118,8 +155,27 @@ public class ModuleCommandeServer {
         return message;
     }
     
-    public String getRetour(){
-        return retour;
+    @Override
+    public void run(){
+        System.out.println("Lancement du module de commande");
+        while (!stop){
+            
+            while(requete)
+            {
+                System.out.println("envoi au server :"+messageFinal);
+                requester.send(messageFinal.getBytes(),0);
+                System.out.println("en attente de reponse server...");
+        
+                byte[] reply = requester.recv(0);
+                String retour = new String(reply);
+                System.out.println("Received " + retour);
+                fenetre.traitementRetourServer(parseCommandeServer(retour));
+                requete=false;
+            }
+            
+        }
+        System.out.println("Le module de commande s'est arrete");
+        
     }
     
     

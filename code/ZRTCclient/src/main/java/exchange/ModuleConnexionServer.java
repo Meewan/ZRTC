@@ -62,13 +62,13 @@ public class ModuleConnexionServer extends Thread{
         
         //on envoi la demande de connexion
         System.out.println("Demande de connexion au server");
-        //System.out.println("Envoi au server :"+user.getNick()+"#CONNECT#"+user.getPgpKey()+"#"+user.getSignature());
-        //String message = outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPgpKey())+outils.encode(user.getSignature());
         String message = user.addSignature(outils.encode(user.getNick())+outils.encode("CONNECT")+outils.encode(user.getPublicKey()));
         System.out.println("Envoi au server :"+message);
         echange.send(message.getBytes(),0);
         
         //on attend la réponse du server
+        System.out.println("En attente de retour server...");
+        
         byte[] reply = echange.recv(0);
         String repServer = new String(reply);
         String[] tmp = repServer.split(this.msgDelimiter);
@@ -102,6 +102,7 @@ public class ModuleConnexionServer extends Thread{
     */
     @Override
     public void run(){
+        System.out.println("Lancement du module de connexion");
         
         while (!stop) {
             

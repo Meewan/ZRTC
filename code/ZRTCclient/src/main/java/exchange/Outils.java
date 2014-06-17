@@ -52,10 +52,6 @@ public class Outils {
         //parsing du message
         String[] tmp = rawMessage.split(this.msgDelimiter);
         System.out.print("commande envoyé ");
-        for(String element : tmp){
-            System.out.print(new String(DatatypeConverter.parseBase64Binary(element))+"#");
-        }
-        System.out.println("");
         message.put("user", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
         //liste des arguments
@@ -79,13 +75,8 @@ public class Outils {
         }
         System.out.println("");
         message.put("command", new String(DatatypeConverter.parseBase64Binary(tmp[0])));
-        //liste des arguments
-        int i;
-        for(i = 1; i < (tmp.length); i++)
-        {
-            message.put("arg" + (i - 1), new String(DatatypeConverter.parseBase64Binary(tmp[i])));
-        }
-        message.put("argc", ((Integer)(i)).toString());
+        message.put("message", new String(DatatypeConverter.parseBase64Binary(tmp[1])));
+        if (tmp.length>2) message.put("user", new String(DatatypeConverter.parseBase64Binary(tmp[2])));
         return message;
     }
     

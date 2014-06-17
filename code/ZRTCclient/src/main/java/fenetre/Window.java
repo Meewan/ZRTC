@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -51,7 +52,6 @@ public class Window extends JFrame implements ActionListener {
     private JPanel panelLeft = new JPanel();
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menuItem1 = new JMenu("Fichier");
-    private JMenu menuItem2 = new JMenu("Edition");
     private JTextField textUser = new JTextField();
     private JLabel nickname = new JLabel("...");
     
@@ -60,13 +60,14 @@ public class Window extends JFrame implements ActionListener {
     private ModuleConnexionServer connexionServer;
     private ModuleCommandeServer commandeServer;
     private Map<String , Panneau> listeOnglet = new HashMap<>();
+    private Map<String , JButton> listeButton= new ConcurrentHashMap<>();
     private String ongletCurrent;
     public CardLayout card = new CardLayout(0,0);
     private boolean stop=false;
     
     public Window()throws SignatureException, PGPException, IOException, NoSuchAlgorithmException{
         // Obligé de mettre l'init du user ici
-    	user = new User("pseudo2","mdp","admin");
+    	user = new User("pseudo","mdp","admin");
         
         //Création de la fenètre
         this.setTitle("ZRTC - Le chat en temps réel en Java");
@@ -76,7 +77,6 @@ public class Window extends JFrame implements ActionListener {
         
         //parametrage du menu
         this.menuBar.add(menuItem1);
-        this.menuBar.add(menuItem2);
         this.setJMenuBar(menuBar);
         initialisation();
         
@@ -92,7 +92,8 @@ public class Window extends JFrame implements ActionListener {
         if(connexionServer.connectServer(user)){
             (listeOnglet.get(ongletCurrent)).displayTextInfo("Connexion au server etablie");
             connexionServer.start();
-            commandeServer=new ModuleCommandeServer("tcp://localhost:22333",context,user);
+            commandeServer=new ModuleCommandeServer("tcp://localhost:22333",context,user,this);
+            //commandeServer.start();
             new ModuleReceptionServer().start();
         }
         else {
@@ -148,6 +149,7 @@ public class Window extends JFrame implements ActionListener {
         bouton.addActionListener(new OngletListener());
         panelLeft.add(bouton);
         listeOnglet.put(title,onglet);//ajout de l'onglet dans la map d'onglet
+        listeButton.put(title, bouton);
         ongletCurrent=title;
         
         panelRight.add(onglet ,title);
@@ -155,11 +157,16 @@ public class Window extends JFrame implements ActionListener {
         card.show(panelRight, title);
     }
     
-    //fonction suppression d'un onglet ******A FINIR******
+    //fonction suppression d'un onglet
     public void removeTab(String title){
-        panelRight.remove(this);//enlever le bouton de la liste des boutons
+        System.out.println("Remove de l'onglet "+title);
+        ongletCurrent="Demarrage";
+        card.show(panelRight, ongletCurrent);
+        panelLeft.remove(listeButton.get(title));//enlever le bouton de la liste des boutons
+        listeButton.remove(title);
         listeOnglet.remove(title);
-        repaint();
+        panelLeft.revalidate();
+        panelLeft.repaint();
     }
     
     
@@ -170,12 +177,14 @@ public class Window extends JFrame implements ActionListener {
         user.setNick(pseudo);
     }
     
+    
     /*
     fonction de traitement d'un envoi de commande au server
     affiche, envoi et appel la fonction de traitement
     */
     public void traitmentEv(String message) throws SignatureException, PGPException, IOException{
         commandeServer.sendMessage(message, user, ongletCurrent);//traitement et envoi du message au server
+        //commandeServer.setRequete(true);
         this.traitementRetourServer(commandeServer.parseCommandeServer(commandeServer.getRetour()));//affichage de la réponse du server
     }
     
@@ -209,11 +218,11 @@ public class Window extends JFrame implements ActionListener {
                 
             case "join":
             {
-            switch (codeErreur)
-            {
+                switch (codeErreur)
+                {
                 case "200":
                     newTab(message.get("arg0"));
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez rejoint le chan "+message.get("arg0"));
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Vous avez rejoint le chan "+message.get("arg0"));
                     break;
                 case "402":
                     (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+ codeErreur);
@@ -221,7 +230,7 @@ public class Window extends JFrame implements ActionListener {
                 default:
                     (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+ codeErreur);
                     break;
-            }
+                }
                 
             }
             break;
@@ -231,10 +240,11 @@ public class Window extends JFrame implements ActionListener {
                 switch (codeErreur)
                 {
                 case "200":
-                    ongletCurrent="Demmarage";
+                    ongletCurrent="Demarrage";
                     card.show(panelRight, ongletCurrent);
                     //*****a ajouter la suppression de tout les onglets encours*******
-                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous avez ete déconnecté du server");
+                    stop=true;
+                    (listeOnglet.get(ongletCurrent)).displayTextInfo("Vous avez ete déconnecté du server");
                     
                 break;
                 case "402":
@@ -267,17 +277,10 @@ public class Window extends JFrame implements ActionListener {
                 
             case "mode":
             {
-                
-            }
-            break;
-                
-            case "nick":
-            {
                 switch (codeErreur)
                 {
                     case "200":
-                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande OK, vous pseudo est maintenant :"+message.get("arg0"));
-                        changeNickname(message.get("arg0"));
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande de modification de droits accepté");
                     break;
                     case "402":
                         (listeOnglet.get(ongletCurrent)).displayTextInfo("Erreur :"+codeErreur);
@@ -288,6 +291,44 @@ public class Window extends JFrame implements ActionListener {
                 }
             }
             break;
+                
+            case "nick":
+            {
+                switch (codeErreur)
+                {
+                    case "200":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("Vous pseudo est maintenant :"+message.get("arg0"));
+                        changeNickname(message.get("arg0"));
+                    break;
+                    case "402":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR :"+codeErreur);
+                    break;
+                    default:
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR "+codeErreur);
+                    break;
+                }
+            }
+            break;
+                case "part":
+            {
+                switch (codeErreur)
+                {
+                    case "200":
+                        removeTab(message.get("arg0"));
+                    break;
+                    case "402":
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR :"+codeErreur);
+                    break;
+                    default:
+                        (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR :"+codeErreur);
+                    break;
+                }
+            }
+            break;
+            default:
+                (listeOnglet.get(ongletCurrent)).displayTextInfo("ERREUR :"+codeErreur);
+            break;
+                    
         }
         
     }
@@ -300,13 +341,13 @@ public class Window extends JFrame implements ActionListener {
         {
             case "message":
             {
-                (listeOnglet.get(message.get("cible"))).displayTextMessage(message.get("arg1"), message.get("arg0"));
+                (listeOnglet.get(message.get("cible"))).displayTextMessage(message.get("user"), message.get("message"));
             }
             break;
                 
             case "info":
             {
-                (listeOnglet.get(message.get("cible"))).displayTextInfo(message.get("arg0"));
+                (listeOnglet.get(message.get("cible"))).displayTextInfo(message.get("message"));
             }
             break;
         }
@@ -325,9 +366,18 @@ public class Window extends JFrame implements ActionListener {
             break;
             case "mode":
             {
-                
+                String tmp[]=message.get("argument").split("#");
+                String messageDroit="";
+                for(String element : tmp){
+                    messageDroit=element+" ";
+                }
+                (listeOnglet.get(ongletCurrent)).displayTextInfo(message.get("source")+"vous a donné les droits : "+messageDroit);
             }
             break;
+            default:
+            {
+                (listeOnglet.get(ongletCurrent)).displayTextInfo("Commande : "+commande+" non reconnu");
+            }
         }
     }
 
@@ -338,10 +388,10 @@ public class Window extends JFrame implements ActionListener {
         //traitmentEv(textUser.getText());
         try {
 			traitmentEv(textUser.getText());
-		} catch (SignatureException | PGPException | IOException e1) {
+            } catch (SignatureException | PGPException | IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		}
+	}
         textUser.setText(null);//on vide le champ de texte
         
     }
@@ -381,6 +431,9 @@ public class Window extends JFrame implements ActionListener {
         }
         reception.close();
         connexionServer.close();
+        commandeServer.close();
+        context.close();
+        System.out.println("Fermeture du context");
         
     }
     }
